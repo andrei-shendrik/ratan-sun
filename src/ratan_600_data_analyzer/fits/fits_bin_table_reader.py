@@ -1,11 +1,9 @@
-import copy
-
 import numpy as np
 
 
 class FitsBinTableReader:
     def __init__(self, bin_table):
-        self._bin_table = copy.deepcopy(bin_table)
+        self._bin_table = bin_table
 
     def get_column(self, keyword: str, required=True):
         """

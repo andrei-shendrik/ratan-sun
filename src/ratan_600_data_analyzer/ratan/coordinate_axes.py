@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 
 
@@ -11,25 +9,25 @@ class CoordinateAxes:
 
     @property
     def frequency_axis(self):
-        return copy.deepcopy(self._frequency_axis)
+        return self._frequency_axis
 
     @frequency_axis.setter
     def frequency_axis(self, array: np.ndarray):
-        self._frequency_axis = copy.deepcopy(array)
+        self._frequency_axis = array
 
     @property
     def time_axis(self):
-        return copy.deepcopy(self._time_axis)
+        return self._time_axis
 
     @time_axis.setter
     def time_axis(self, array: np.ndarray):
-        self._time_axis = copy.deepcopy(array)
+        self._time_axis = array
 
     @property
     def arcsec_axis(self):
-        return copy.deepcopy(self._arcsec_axis)
+        return self._arcsec_axis
 
     @arcsec_axis.setter
     def arcsec_axis(self, array: np.ndarray):
-        self._arcsec_axis = copy.deepcopy(array)
+        self._arcsec_axis = array
 

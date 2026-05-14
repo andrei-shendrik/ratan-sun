@@ -10,7 +10,7 @@ from ratan_600_data_analyzer.ratan.data_layout import DataLayout
 from ratan_600_data_analyzer.fits.fits_header_reader import FitsHeaderReader
 from ratan_600_data_analyzer.fits.fits_bin_table_reader import FitsBinTableReader
 from ratan_600_data_analyzer.ratan.polarization_type import PolarizationType
-from ratan_600_data_analyzer.ratan.ratan_metadata_loader import RatanMetadataLoader
+from ratan_600_data_analyzer.ratan.services.ratan_metadata_loader import RatanMetadataLoader
 from ratan_600_data_analyzer.ratan.sspc.sspc_constants import SSPC_16_START_DATE
 from ratan_600_data_analyzer.ratan.sspc.sspc_metadata import SSPCMetadata
 from ratan_600_data_analyzer.utils.date_utils import DateUtils
@@ -179,7 +179,7 @@ class SSPCMetadataFitsLoader(RatanMetadataLoader):
         if bin_table is None:
             raise RuntimeError(f"HDU2_table is None")
 
-        metadata.hdu2_table = copy.deepcopy(bin_table)
+        metadata.hdu2_table = bin_table
         axes = [Axis.FREQUENCY, Axis.POLARIZATION, Axis.SAMPLE]
 
         fits_bin_table_reader = FitsBinTableReader(bin_table)
@@ -195,7 +195,7 @@ class SSPCMetadataFitsLoader(RatanMetadataLoader):
             metadata.frequencies_wideband = None
             polarization_axis = [PolarizationType.LHCP, PolarizationType.RHCP]
 
-        metadata.polarizations = copy.deepcopy(polarization_axis)
+        metadata.polarizations = polarization_axis
         metadata.data_layout = DataLayout(axes, frequency_axis, polarization_axis)
 
         return metadata

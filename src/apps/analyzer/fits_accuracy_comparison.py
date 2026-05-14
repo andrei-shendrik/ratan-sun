@@ -1,51 +1,20 @@
 from datetime import datetime
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 from astropy.io import fits
-from matplotlib import pyplot as plt
 
 from apps.analyzer.fast_acquisition_1_3ghz_processing_director import FastAcquisition1To3GHzProcessingDirector
-from ratan_600_data_analyzer.ratan.data_extractor import DataExtractor
 from ratan_600_data_analyzer.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_configuration import config
-from ratan_600_data_analyzer.ratan.fast_acquisition_1_3ghz.writers.fast_acquisition_1_3ghz_fits_writer import \
-    FastAcquisition1To3GHzFitsWriter
 from ratan_600_data_analyzer.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_observation import \
     FastAcquisition1To3GHzObservation
-from ratan_600_data_analyzer.ratan.polarization_type import PolarizationType
+from ratan_600_data_analyzer.ratan.fast_acquisition_1_3ghz.writers.fast_acquisition_1_3ghz_fits_writer import \
+    FastAcquisition1To3GHzFitsWriter
 from ratan_600_data_analyzer.utils.common_utils import time_counter
 
-FITS_OUTPUT_PATH = Path(r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun")
-
-def process_observations():
-
-    """
-    config_loader
-    data_loader
-    """
-
-    # fast_acquisition_fits_file = Path(
-    #     r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun\2026\03\2026-03-01_120948_sun+04.fits")
-    # read_fits(fast_acquisition_fits_file)
-
-    fast_acquisition_bin_file = Path(
-       r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2024\08\2024-08-01_121957_sun+00.bin.gz")
-
-    # fast_acquisition_bin_file = Path(
-    #     r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2025\09\2025-09-01_121336_sun+00.bin.gz")
-
-    # без солнца
-    # fast_acquisition_bin_file = Path(
-    #          r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2025\03\2025-03-21_122043_sun+00.bin.gz")
-
-    output_fits_file = process_fast_acquisition(fast_acquisition_bin_file, FITS_OUTPUT_PATH)
-
-    #fits_file = Path(r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun\2025\09\2025-09-01_121336_sun+00.fits")
-    #read_fits(fits_file)
 
 @time_counter
-def process_fast_acquisition(fast_acquisition_bin_file: Path, fits_output_path: Path) -> Path:
+def compare_fits(fast_acquisition_bin_file: Path, fits_output_path: Path):
 
     write = True
     observation = FastAcquisition1To3GHzProcessingDirector.run_standard_processing(fast_acquisition_bin_file)
@@ -146,59 +115,55 @@ def process_fast_acquisition(fast_acquisition_bin_file: Path, fits_output_path: 
     print(f"Максимальная разница: {max_diff:.16f}")
     print(f"Минимальная разница: {min_diff:.16f}")
 
-    return output_fits_file
-
-    #data_extractor = DataExtractor(observation)
-    #target_freq = 2.0
-    #pol = PolarizationType.LHCP
-
-    # freq = 1.5 # !!!
-    # freq = 2.7 # !!!
-    # pol = PolarizationType.LHCP
-
-    #channel_data = data_extractor.get_channel_data(target_freq, pol)
-    #print(f"Freq: {channel_data.frequency} Pol: {channel_data.polarization.value}")
+    # test3
+    # start_index = 10000
+    # end_index = 10100
+    #
+    # # Извлекаем срезы в этом диапазоне
+    # x_axis = np.arange(start_index, end_index)
+    # data1_zoom = data_cube_bin[0, 0, start_index:end_index]
+    # data2_zoom = data_cube_fits[0, 0, start_index:end_index]
+    # diff_zoom = data2_zoom - data1_zoom
+    #
+    # # --- Создаем комплексный график: сравнение + разница ---
+    # fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True)
+    #
+    # # Верхний график: Сравнение сигналов точками
+    # # Используем plt.plot с маркерами, это очень быстро
+    # ax1.plot(x_axis, data1_zoom, linestyle='none', marker='.', markersize=4, label='Массив 1 (точки)')
+    # ax1.plot(x_axis, data2_zoom, linestyle='none', marker='.', markersize=4, label='Массив 2 (точки)',
+    #          alpha=0.5)  # alpha - прозрачность
+    # ax1.set_title(f'Детальное сравнение точками (участок {start_index}-{end_index})')
+    # ax1.set_ylabel('Амплитуда')
+    # ax1.legend()
+    # ax1.grid(True)
+    #
+    # # Нижний график: Разница
+    # ax2.plot(x_axis, diff_zoom, linestyle='none', marker='o', markersize=3, color='green')
+    # ax2.axhline(0, color='black', linestyle='--', linewidth=0.8)
+    # ax2.set_title('Разница на детальном участке')
+    # ax2.set_xlabel(f'Индекс отсчета (смещение {start_index})')
+    # ax2.set_ylabel('Разница')
+    # ax2.grid(True)
+    #
+    # plt.tight_layout()
+    # plt.show()
 
     # figure
+    # data = observation.data
+    # lhcp = data.lhcp
     # matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
-    #
-    # # window
     # plt.figure(figsize=(14, 8))
-    # plt.plot(channel_data.array,
-    #          linewidth=1,
-    #          marker='o',
-    #          markersize=2,
-    #          )
-    # plt.xlabel("")
-    # plt.ylabel("")
-    # plt.suptitle(f"{observation.metadata.datetime_culmination_feed_horn_utc.strftime('%Y-%m-%d %H:%M:%S')} UTC", fontsize=12)
-    # plt.text(0.5, 1.02, f"{channel_data.frequency:.2f} GHz; {channel_data.polarization.value}", ha="center",
-    #          va="bottom", fontsize=12,
-    #          transform=plt.gca().transAxes)
-
-    # window1
-    # plt.figure()
-    #
-    # plt.plot(channel_data2)
-    # plt.xlabel("")
-    # plt.ylabel("")
-    # plt.suptitle(f"{culm2_utc_formatted} UTC", fontsize=12)
-    # plt.text(0.5, 1.02, f"{frequency2:.2f} GHz; {data_type}", ha="center", va="bottom", fontsize=12, transform=plt.gca().transAxes)
-
-    # показ всех графиков
-    #plt.show()
-
-    # scan_plotter = ScanPlotter()
-    # scan_plotter.add_series(observation, freq, pol)
-    # scan_plotter.show()
-
-    # scan_plotter.set_title("")
-    # scan_plotter.set_size(1024,1024)
-    # scan_plotter.save(file)
-
-    # writer = FitsWriter(observation)
-    # output_fits_file = Path(r"D:\data\astro\ratan-600\fast_acquisition\1-3ghz\fits\2024\08\2024-08-01_121957_sun+00.fits")
-    # writer.save(output_fits_file)
+    # for freq_idx in range(lhcp.shape[0]):
+    #     plt.plot(lhcp[freq_idx, :],
+    #             alpha=0.5,
+    #             linewidth = 1,
+    #             marker = 'o',
+    #             markersize = 2
+    #     )
+    # plt.grid(alpha=0.3)
+    # plt.tight_layout()
+    # plt.show()
 
 @time_counter
 def read_fits(fits_file: Path):
@@ -255,82 +220,48 @@ def read_fits(fits_file: Path):
     data = data_array[:,polarization,:]
 
     # построение спектрограммы
-    matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
-    fig, ax = plt.subplots()
-    # im = ax.pcolormesh(full_arcsec_scale, freq_selection, pol0_data_selection_calibrated,
-    #                    shading='gouraud', cmap='Spectral_r')
-    contour = ax.contourf(arcsec_axis, frequency_axis, data, levels=100,
-                          cmap='Spectral_r')
-    ax.set_xlabel('x, arcsec')
-    ax.set_ylabel('Frequency, MHz')
-    ax.set_title(f"{datatime_str} Az {az}\nSpectrogram {pol}")
-    fig.colorbar(contour, ax=ax, label='s.f.u.')
-    #plt.show()
+    # matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
+    # fig, ax = plt.subplots()
+    # # im = ax.pcolormesh(full_arcsec_scale, freq_selection, pol0_data_selection_calibrated,
+    # #                    shading='gouraud', cmap='Spectral_r')
+    # contour = ax.contourf(arcsec_axis, frequency_axis, data, levels=100,
+    #                       cmap='Spectral_r')
+    # ax.set_xlabel('x, arcsec')
+    # ax.set_ylabel('Frequency, MHz')
+    # ax.set_title(f"{datatime_str} Az {az}\nSpectrogram {pol}")
+    # fig.colorbar(contour, ax=ax, label='s.f.u.')
+    # #plt.show()
 
     #data_array[data_array == 2] = np.nan
     #data_array[data_array == 1] = np.nan
 
 
     # построение сканов
-    matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
-    plt.figure(figsize=(12, 7))
-    for freq_idx in range(data_array.shape[0]):
-        plt.plot(arcsec_axis, data_array[freq_idx, polarization, :],
-                alpha=0.5,
-                linewidth = 1,
-                marker = 'o',
-                markersize = 2
-        )
-    plt.grid(alpha=0.3)
-    plt.xlabel('x, arcsec')
-    plt.ylabel('flux, s.f.u.')
-    plt.title(f"{datatime_str} Az {az}\n{pol}")
-    plt.tight_layout()
-    plt.show()
+    # matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
+    # plt.figure(figsize=(12, 7))
+    # for freq_idx in range(data_array.shape[0]):
+    #     plt.plot(arcsec_axis, data_array[freq_idx, polarization, :],
+    #             alpha=0.5,
+    #             linewidth = 1,
+    #             marker = 'o',
+    #             markersize = 2
+    #     )
+    # plt.grid(alpha=0.3)
+    # plt.xlabel('x, arcsec')
+    # plt.ylabel('flux, s.f.u.')
+    # plt.title(f"{datatime_str} Az {az}\n{pol}")
+    # plt.tight_layout()
+    # plt.show()
     return data_array
 
-# def process_sspc():
-#     sspc_fits_file = Path(r"D:\data\astro\ratan-600\sun\fits\level1\2017\09\20170905_121217_sun+0.fits")
-#
-#     builder = RatanBuilderFactory.create_builder(sspc_fits_file)
-#     observation = None
-#     if RatanBuilderFactory.is_sspc_builder(builder):
-#         observation = (builder
-#                        .read()
-#                        .build())
-#     if observation is None:
-#         raise Exception("No observation created")
-#
-#     print(observation.metadata.polarizations)
-#     print(f"Dateobs: {observation.metadata.datetime_culmination_utc}")
-#
-#     data_extractor = DataExtractor(observation)
-#
-#     target_freq = 15.0
-#     pol = PolarizationType.LHCP
-#
-#     # freq = 1.5 # !!!
-#     # freq = 2.7 # !!!
-#     # pol = PolarizationType.LHCP
-#
-#     channel_data = data_extractor.get_channel_data(target_freq, pol)
-#     print(f"Freq: {channel_data.frequency} Pol: {channel_data.polarization.value}")
-#     print(channel_data.array)
-#
-#     # figure
-#     matplotlib.use('TkAgg')  # 'Qt5Agg', 'WxAgg'
-#
-#     # window
-#     plt.figure()
-#
-#     plt.plot(channel_data.array)
-#     plt.xlabel("")
-#     plt.ylabel("")
-#     plt.suptitle(f"{observation.metadata.datetime_culmination_utc.strftime('%Y-%m-%d %H:%M:%S')} UTC", fontsize=12)
-#     plt.text(0.5, 1.02, f"{channel_data.frequency:.2f} GHz; {channel_data.polarization.value}", ha="center",
-#              va="bottom", fontsize=12,
-#              transform=plt.gca().transAxes)
-#     plt.show()
+def _get_output_fits_filename(observation: FastAcquisition1To3GHzObservation, fits_output_path: Path) -> Path:
+    culm_efr = observation.metadata.datetime_culmination_efrat_utc
+    year = culm_efr.year
+    month_str = f"{culm_efr.month:02d}"
+    obs_file = observation.metadata.obs_file
+    base_filename = obs_file.name.split('.', 1)[0]
+    output_fits_file = Path(fits_output_path / f"{year}" / month_str / f"{base_filename}.fits")
+    return output_fits_file
 
 def _print_header_params(observation: FastAcquisition1To3GHzObservation):
     metadata = observation.metadata
@@ -360,18 +291,3 @@ def _print_header_params(observation: FastAcquisition1To3GHzObservation):
     # print(f"От 1го импульса: {metadata.datetime_culmination_feed_horn_utc - metadata.start_pulse_edge_time}")
     # print(f"До 2го импульса: {metadata.stop_pulse_edge_time - metadata.datetime_culmination_feed_horn_utc}")
     # print(f"После 2го импульса: {metadata.datetime_reg_stop_utc - metadata.stop_pulse_edge_time}")
-
-def _get_output_fits_filename(observation: FastAcquisition1To3GHzObservation, fits_output_path: Path) -> Path:
-    culm_efr = observation.metadata.datetime_culmination_efrat_utc
-    year = culm_efr.year
-    month_str = f"{culm_efr.month:02d}"
-    obs_file = observation.metadata.obs_file
-    base_filename = obs_file.name.split('.', 1)[0]
-    output_fits_file = Path(fits_output_path / f"{year}" / month_str / f"{base_filename}.fits")
-    return output_fits_file
-
-def main():
-    process_observations()
-
-if __name__ == "__main__":
-  main()

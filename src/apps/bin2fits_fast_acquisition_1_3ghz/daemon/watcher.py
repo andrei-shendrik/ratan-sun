@@ -89,6 +89,13 @@ class Watcher:
         curr_dir = self._base_dir / str(curr_year) / f"{curr_month:02d}"
         prev_dir = self._base_dir / str(prev_year) / f"{prev_month:02d}"
 
+        if not curr_dir.exists():
+            try:
+                curr_dir.mkdir(parents=True, exist_ok=True)
+                logger.info(f"Created directory for new month: {curr_dir}")
+            except Exception as e:
+                logger.error(f"Failed to create directory {curr_dir}: {e}")
+
         return [curr_dir, prev_dir]
 
     def _update_watches(self):

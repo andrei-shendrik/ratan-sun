@@ -1,9 +1,8 @@
-import copy
 
 
 class FitsHeaderReader:
     def __init__(self, header):
-        self._header = copy.deepcopy(header)
+        self._header = header
 
     def get_value(self, keyword: str, required=True):
         """

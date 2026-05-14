@@ -7,12 +7,12 @@ import time
 import psutil
 
 from apps.bin2fits_fast_acquisition_1_3ghz.services.process_profiler import ProcessProfiler
+from apps.bin2fits_fast_acquisition_1_3ghz.services.processing_director import \
+    FastAcquisition1To3GHzObservationProcessingDirector
 
 if sys.platform != 'win32':
     import resource
 
-from apps.bin2fits_fast_acquisition_1_3ghz.services.observation_processor import \
-    FastAcquisition1To3GHzObservationProcessor
 from ratan_600_data_analyzer.logging.logger_configurator import LoggerConfigurator
 
 def init_worker(worker_max_ram_gb: float):
@@ -88,7 +88,7 @@ def parallel_worker(bin_file: Path, output_fits_file: Path, overwrite: bool, app
     try:
         # Если файл потребует больше WORKER_MAX_RAM_GB, эта строка выбросит MemoryError
         with ProcessProfiler() as profiler:
-            FastAcquisition1To3GHzObservationProcessor.execute(bin_file, output_fits_file, overwrite)
+            FastAcquisition1To3GHzObservationProcessingDirector.execute(bin_file, output_fits_file, overwrite)
         success = True
         exec_time = profiler.elapsed_seconds
         peak_ram = profiler.peak_memory_mb

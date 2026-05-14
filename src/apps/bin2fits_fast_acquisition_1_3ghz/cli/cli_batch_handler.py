@@ -5,12 +5,14 @@ import signal
 from datetime import datetime
 from pathlib import Path
 
-from apps.bin2fits_fast_acquisition_1_3ghz.infrastructure.database import ProcessingStatus
+from sqlalchemy import select
+
+from apps.bin2fits_fast_acquisition_1_3ghz.infrastructure.database import ProcessingStatus, FastAcquisition1To3GHzRaw
 from apps.bin2fits_fast_acquisition_1_3ghz.services.observation_file_filter import ObservationFileFilter
-from apps.bin2fits_fast_acquisition_1_3ghz.services.observation_processor import \
-    FastAcquisition1To3GHzObservationProcessor
 from apps.bin2fits_fast_acquisition_1_3ghz.services.parallel_worker import WorkerResult, parallel_worker, init_worker
 from apps.bin2fits_fast_acquisition_1_3ghz.services.process_profiler import ProcessProfiler
+from apps.bin2fits_fast_acquisition_1_3ghz.services.processing_director import \
+    FastAcquisition1To3GHzObservationProcessingDirector
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,10 @@ class CliBatchHandler:
         signal.signal(signal.SIGTERM, self._handle_shutdown)
 
     def execute(self, args):
+
+        actually_claimed = []
+        skipped_files = []
+
         with ProcessProfiler() as batch_profiler:
             self._max_recorded_ram_mb = 0.0
             
@@ -63,46 +69,68 @@ class CliBatchHandler:
             logger.info(f"Starting processing of {num_files_to_process} files in {mode} mode...")
 
             if not is_multi_processing:
-                self._run_sequential(files_to_process, fits_files_dir, args.overwrite, num_files_to_process)
+                actually_claimed, skipped_files = self._run_sequential(files_to_process, fits_files_dir, args.overwrite, num_files_to_process)
             else:
                 logger.info(f"Please wait for processes messages...")
-                self._run_parallel(files_to_process, fits_files_dir, args.overwrite, num_files_to_process, active_workers)
+                actually_claimed, skipped_files = self._run_parallel(files_to_process, fits_files_dir, args.overwrite, num_files_to_process, active_workers)
 
-            logger.info("Processing task finished")
+        logger.info("Processing task finished")
 
-            # report
-            logger.info("=== Summary report ===")
+        # report
+        success_count = 0
+        failed_count = 0
+        failed_filenames = []
+        if actually_claimed:
+            # Получаем статусы из БД одним запросом
+            claimed_names = [f.name for f in actually_claimed]
 
-            report = self._processing_controller.generate_batch_report(files_to_process)
+            with self._processing_controller._session_factory() as session:
+                stmt = select(FastAcquisition1To3GHzRaw).where(
+                    FastAcquisition1To3GHzRaw.bin_filename.in_(claimed_names))
+                records = session.scalars(stmt).all()
+                for record in records:
+                    if record.status == ProcessingStatus.SUCCESS:
+                        success_count += 1
+                    elif record.status == ProcessingStatus.FAILED:
+                        failed_count += 1
+                        failed_filenames.append(record.bin_filename)
 
-            logger.info(f"Total files processed : {report.total}")
-            logger.info(f"SUCCESS               : {report.success}")
+        # report
+        logger.info("=== Summary report ===")
+        report = self._processing_controller.generate_batch_report(actually_claimed, skipped_files)
 
-            if report.failed > 0:
-                logger.info(f"FAILED                : {report.failed}")
-            else:
-                logger.info(f"FAILED                : 0")
+        logger.info(f"Total files requested : {report.total_requested}")
+        logger.info(f"SUCCESS               : {report.success}")
+        logger.info(f"FAILED                : {report.failed}")
+        logger.info(f"SKIPPED               : {report.skipped}")
 
-            if report.unprocessed > 0:
-                logger.warning(f"UNPROCESSED (Skipped) : {report.unprocessed} (Check logs for database or IO locks)")
+        if report.unprocessed > 0:
+            logger.warning(f"UNPROCESSED (Aborted): {report.unprocessed}")
 
-            if report.processing > 0:
-                logger.critical(
-                    f"STUCK (Processing)    : {report.processing} (CRITICAL: Database transaction failed during cleanup!)")
+        if report.processing > 0:
+            logger.critical(
+                f"STUCK (Processing)   : {report.processing} (CRITICAL: Database transaction failed during cleanup!)")
 
-            if report.failed > 0 and logger.isEnabledFor(logging.DEBUG):
-                logger.info("--- FAILED FILES LIST ---")
-                for fname in report.failed_filenames:
-                    logger.info(f"[{fname}] status: FAILED")
-                logger.info("-------------------------")
+        if report.failed > 0:
+            logger.info("--- FAILED FILES LIST ---")
+            for fname in report.failed_filenames:
+                logger.info(f"[{fname}] status: FAILED")
+            logger.info("-------------------------")
 
-            logger.info(f"Total Task Time      : {batch_profiler.formatted_time}")
-            logger.info(f"Peak RAM used by Worker  : {self._max_recorded_ram_mb:.1f} MB")
+        if report.skipped > 0 and logger.isEnabledFor(logging.DEBUG):
+            logger.debug("--- SKIPPED FILES LIST ---")
+            for fname in report.skipped_filenames:
+                logger.debug(f"[{fname}] status: SKIPPED (Claim conflict, Duplicate or not needed)")
+            logger.debug("-------------------------")
 
-            logger.info("=== End report ===")
+        logger.info(f"Total Task Time         : {batch_profiler.formatted_time}")
+        logger.info(f"Peak RAM used by Worker : {self._max_recorded_ram_mb:.1f} MB")
+        logger.info("=== End report ===")
 
     def _run_sequential(self, files_to_process, fits_files_dir, overwrite, total_files):
         processed_count = 0
+        actually_claimed = []
+        skipped_files = []
 
         for file_path in files_to_process:
             processed_count += 1
@@ -112,13 +140,16 @@ class CliBatchHandler:
 
             out_fits = self._processing_controller.claim_file_for_processing(file_path, fits_files_dir)
             if not out_fits:
+                skipped_files.append(filename)
                 continue
+
+            actually_claimed.append(file_path)
 
             success = False
             error_msg = ""
             try:
                 with ProcessProfiler() as profiler:
-                    FastAcquisition1To3GHzObservationProcessor.execute(file_path, out_fits, overwrite)
+                    FastAcquisition1To3GHzObservationProcessingDirector.execute(file_path, out_fits, overwrite)
                 success = True
                 logger.info(
                     f"[{filename}] Stats -> Time: {profiler.formatted_time} | Peak RAM: {profiler.peak_memory_mb:.1f} MB")
@@ -136,8 +167,12 @@ class CliBatchHandler:
                 status,
                 error_msg
             )
+        return actually_claimed, skipped_files
 
     def _run_parallel(self, files_to_process, fits_files_dir, overwrite, total_files, active_workers):
+
+        actually_claimed = []
+        skipped_files = []
 
         claimed_files = set()
         future_to_file = {}
@@ -168,8 +203,10 @@ class CliBatchHandler:
 
                     out_fits = self._processing_controller.claim_file_for_processing(task_file_path, fits_files_dir)
                     if not out_fits:
+                        skipped_files.append(task_file_path.name)
                         continue
 
+                    actually_claimed.append(task_file_path)
                     claimed_files.add(task_file_path)
 
                     # ИЗМЕНЕНО: Назвали переменную new_future
@@ -243,6 +280,7 @@ class CliBatchHandler:
                         self._processing_controller.revert_claim(file_path)
 
                 executor.shutdown(wait=True, cancel_futures=True)
+        return actually_claimed, skipped_files
 
 
     def _parse_date(self, date_str: str) -> datetime | None:

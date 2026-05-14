@@ -11,23 +11,27 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from apps.bin2fits_fast_acquisition_1_3ghz.infrastructure.database import FastAcquisition1To3GHzRaw, ProcessingStatus
-from apps.bin2fits_fast_acquisition_1_3ghz.services.observation_processor import FastAcquisition1To3GHzObservationProcessor
+from apps.bin2fits_fast_acquisition_1_3ghz.services.processing_director import \
+    FastAcquisition1To3GHzObservationProcessingDirector
 
 logger = logging.getLogger(__name__)
 
 @dataclass
 class BatchReport:
-    total: int
+    total_requested: int
     success: int
     failed: int
+    skipped: int
     processing: int
     unprocessed: int
     failed_filenames: List[str]
+    skipped_filenames: List[str]
 
 class FastAcquisition1To3GHzProcessingController:
     def __init__(self, session_factory, settings):
         self._session_factory = session_factory
         self._settings = settings
+        self._local_locks = {}
 
     def recover_stuck_files(self, timeout_minutes: int = 10):
         """
@@ -157,6 +161,7 @@ class FastAcquisition1To3GHzProcessingController:
                 # ВАЖНО: Мы должны вернуть объект lock, чтобы снять его в конце!
                 # В данной архитектуре лучше сделать так, чтобы Lock жил, пока жив процесс воркера.
                 # Так как ОС сама удаляет локи FileLock при смерти процесса - это будет работать идеально.
+                self._local_locks[output_fits_file] = lock
                 return output_fits_file
             except Timeout:
                 logger.warning(f"[{bin_file.name}] Conflict: File is locked by OS.")
@@ -211,6 +216,13 @@ class FastAcquisition1To3GHzProcessingController:
         """
             Обновление статуса обработки (SUCCESS/FAILED)
         """
+        if fits_path is not None and fits_path in self._local_locks:
+            lock = self._local_locks.pop(fits_path)
+            lock.release()
+            # Опционально: можно удалить сам файл .lock с диска, чтобы не мусорить
+            if Path(lock.lock_file).exists():
+                Path(lock.lock_file).unlink(missing_ok=True)
+
         should_use_db = bin_file.is_relative_to(self._settings.bin_archive.resolve())
         if not should_use_db:
             return
@@ -242,37 +254,50 @@ class FastAcquisition1To3GHzProcessingController:
             return
 
         try:
-            FastAcquisition1To3GHzObservationProcessor.execute(bin_file, output_fits_file, overwrite)
+            FastAcquisition1To3GHzObservationProcessingDirector.execute(bin_file, output_fits_file, overwrite)
             self.finalize_status_in_db(bin_file, output_fits_file, ProcessingStatus.SUCCESS, "")
         except Exception as e:
             error_msg = str(e)[:500]
             logger.error(f"[{bin_file.name}] Processing error: {error_msg}", exc_info=True)
             self.finalize_status_in_db(bin_file, None, ProcessingStatus.FAILED, error_msg)
 
-    def generate_batch_report(self, processed_files: List[Path]) -> BatchReport:
+    def generate_batch_report(self, actually_claimed_files: List[Path], skipped_filenames: List[str]) -> BatchReport:
         """
-        Generates a summary report for a specific batch of files.
-        Automatically cleans up any STUCK (PROCESSING) statuses left behind by crashed workers.
+        Генерирует итоговый отчет для партии файлов.
+        Автоматически находит и "чистит" файлы, которые зависли в статусе PROCESSING
+        (например, из-за OOM Killer'a).
         """
-        if not processed_files:
-            return BatchReport(0, 0, 0, 0, 0, [])
+        total_req = len(actually_claimed_files) + len(skipped_filenames)
 
-        filenames = [f.name for f in processed_files]
-        report = BatchReport(total=len(filenames), success=0, failed=0, processing=0, unprocessed=0,
-                             failed_filenames=[])
+        report = BatchReport(
+            total_requested=total_req,
+            success=0,
+            failed=0,
+            skipped=len(skipped_filenames),
+            processing=0,
+            unprocessed=0,
+            failed_filenames=[],
+            skipped_filenames=skipped_filenames
+        )
 
+        if not actually_claimed_files:
+            return report
+
+        filenames = [f.name for f in actually_claimed_files]
         session: Session | None = None
+
         try:
             session = self._session_factory()
             if session is not None:
-                # 1. Запрашиваем статусы из БД только для наших файлов
+                # 1. Запрашиваем статусы из БД только для забронированных файлов
                 stmt = select(FastAcquisition1To3GHzRaw).where(
                     FastAcquisition1To3GHzRaw.bin_filename.in_(filenames)
                 )
                 records = session.scalars(stmt).all()
 
-                # Считаем статусы и собираем имена упавших файлов
                 stuck_records = []
+
+                # 2. Подсчет нормальных статусов
                 for record in records:
                     if record.status == ProcessingStatus.SUCCESS:
                         report.success += 1
@@ -280,36 +305,40 @@ class FastAcquisition1To3GHzProcessingController:
                         report.failed += 1
                         report.failed_filenames.append(record.bin_filename)
                     elif record.status == ProcessingStatus.UNPROCESSED:
+                        # Сюда могут попасть файлы, отмененные через revert_claim по Ctrl+C
                         report.unprocessed += 1
                     elif record.status == ProcessingStatus.PROCESSING:
+                        # Нашли жертву OOM Killer'a!
                         report.processing += 1
                         stuck_records.append(record)
 
-                # 2. АВТО-ОЧИСТКА ЗАВИСШИХ СТАТУСОВ (Cleanup)
+                # 3. АВТО-ОЧИСТКА ЗАВИСШИХ СТАТУСОВ (Cleanup)
                 if stuck_records:
                     logger.warning(
-                        f"Batch Cleanup: Found {len(stuck_records)} files stuck in PROCESSING state. Reverting them...")
+                        f"Batch Cleanup: Found {len(stuck_records)} files stuck in PROCESSING state. Resolving...")
+
                     for record in stuck_records:
                         fits_path = Path(record.fits_path_filename) if record.fits_path_filename else None
 
+                        # Интеллектуальное решение судьбы файла
                         if fits_path and fits_path.exists():
-                            # Перезапись упала, возвращаем старый SUCCESS
+                            # Перезапись упала, но старый файл цел! Оставляем его SUCCESS.
                             record.status = ProcessingStatus.SUCCESS
                             record.comment = "Cleanup: Worker crashed during overwrite. Reverted to original SUCCESS."
                             report.success += 1
                             report.processing -= 1
                         else:
-                            # Обычный краш
+                            # Обычный краш. Файла нет.
                             record.status = ProcessingStatus.FAILED
                             record.fits_filename = None
                             record.fits_path_filename = None
-                            record.comment = "Cleanup: Worker crashed (No FITS file found)."
+                            record.comment = "Cleanup: Worker crashed (Process Killed by OS)."
                             report.failed += 1
                             report.processing -= 1
                             report.failed_filenames.append(record.bin_filename)
 
                     session.commit()
-                    logger.warning("Batch Cleanup: Successfully reverted stuck statuses.")
+                    logger.warning("Batch Cleanup: Successfully resolved stuck statuses.")
 
         except Exception as e:
             if session is not None: session.rollback()
@@ -320,7 +349,11 @@ class FastAcquisition1To3GHzProcessingController:
         return report
 
     def revert_claim(self, bin_file: Path):
-        """Откатывает бронь файла (возвращает в UNPROCESSED)"""
+        """
+        Откатывает бронь файла (возвращает в UNPROCESSED).
+        Вызывается при Graceful Shutdown (Ctrl+C), чтобы освободить файлы,
+        которые стояли в очереди, но не успели начать вычисления.
+        """
         filename = bin_file.name
         session: Session | None = None
         try:
@@ -328,14 +361,16 @@ class FastAcquisition1To3GHzProcessingController:
             if session is not None:
                 stmt = select(FastAcquisition1To3GHzRaw).filter_by(bin_filename=filename)
                 record: FastAcquisition1To3GHzRaw | None = session.scalar(stmt)
-                if record is not None:
-                    if record.status == ProcessingStatus.PROCESSING:
-                        record.status = ProcessingStatus.UNPROCESSED
-                        record.fits_filename = None
-                        record.fits_path_filename = None
-                        record.comment = "Aborted before processing finished"
-                        session.commit()
-                        logger.warning(f"[{filename}] Status reverted to UNPROCESSED.")
+
+                # Явная проверка на None и на статус PROCESSING
+                if record is not None and record.status == ProcessingStatus.PROCESSING:
+                    record.status = ProcessingStatus.UNPROCESSED
+                    record.fits_filename = None
+                    record.fits_path_filename = None
+                    record.comment = "Aborted by user (Ctrl+C) before processing finished"
+                    session.commit()
+                    logger.warning(f"[{filename}] Claim reverted to UNPROCESSED.")
+
         except Exception as e:
             if session is not None: session.rollback()
             logger.error(f"[{filename}] Failed to revert claim: {e}")

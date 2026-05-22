@@ -1,6 +1,6 @@
 # Prod
 services:
-  postgres_db:
+  postgres-db:
     image: postgres:18
     restart: always
     environment:
@@ -19,10 +19,10 @@ services:
     env_file:
       - .env
     environment:
-      # внутри контейнера DB_HOST="postgres_db"
-      - DB_HOST=postgres_db
+      # внутри контейнера DB_HOST="postgres-db"
+      - DB_HOST=postgres-db
     depends_on:
-      - postgres_db # ожидание старта БД
+      - postgres-db # ожидание старта БД
     # Прокидываем пути из .env в контейнер (если они ссылаются на реальные папки ОС)
     volumes:
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
@@ -36,9 +36,9 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=postgres_db
+      - DB_HOST=postgres-db
     depends_on:
-      - postgres_db
+      - postgres-db
     volumes:
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/fits

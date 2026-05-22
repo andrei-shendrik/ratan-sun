@@ -14,7 +14,7 @@ services:
 
   bin2fits_fast_1_3_daemon:
     # имя образа должно совпадать с именем в скрипте для GitHub Actions, откуда он его берет
-    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${APP_VERSION:-latest}
+    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${PROJECT_VERSION:-latest}
     restart: always
     env_file:
       - .env
@@ -31,7 +31,7 @@ services:
     command: ["--daemon"]
 
   bin2fits_fast_1_3: #_cli
-    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${APP_VERSION:-latest}
+    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${PROJECT_VERSION:-latest}
     restart: "no" # контейнер должен исчезнуть после выполнения задачи
     env_file:
       - .env

@@ -1,0 +1,24 @@
+name: automatic publish ratanpy library to external repo
+
+on:
+  push:
+    tags:
+      - 'v*' # запуск при создании релизного тэга
+
+jobs:
+  push-to-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: download repo
+        uses: actions/checkout@v4
+
+      - name: copy folder to external repo
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.MY_GITHUB_TOKEN }}
+        with:
+          source-directory: 'libs/ratanpy'
+          destination-github-username: 'andrei-shendrik'
+          destination-repository-name: 'ratanpy'
+          user-email: andrei.shendrik@gmail.com
+          target-branch: main

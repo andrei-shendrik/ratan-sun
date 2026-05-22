@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ratanpy"
+version = "2.0.0"
+requires-python = ">= 3.12"
+description = "library for RATAN-600 observations"
+authors = [
+  { name="Andrei Shendrik", email="andrei.shendrik@gmail.com" },
+]
+
+dependencies = [
+    "astropy",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "Pillow",
+    "plotly",
+    "sunpy",
+    "colorama",
+    "pydantic"
+]
+
+[tool.deptry]
+known_first_party = ["ratanpy"]

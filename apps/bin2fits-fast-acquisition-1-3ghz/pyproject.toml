@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bin2fits-fast-acquisition-1-3ghz"
+version = "0.1.0"
+requires-python = ">= 3.12"
+description = ""
+
+dependencies = [
+    "python-dotenv",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "watchdog",
+    "psutil",
+    "filelock",
+    "pydantic",
+    "pydantic_settings",
+    "ratanpy"
+]
+
+[project.scripts]
+bin2fits_fast_1_3 = "bin2fits_fast_acquisition_1_3ghz.main:main"
+
+[tool.uv.sources]
+ratanpy = { workspace = true }
+
+[tool.deptry]
+known_first_party = ["bin2fits_fast_acquisition_1_3ghz"]
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["psycopg2-binary"]

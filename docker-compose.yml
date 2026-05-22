@@ -1,4 +1,4 @@
-version: '3.8'
+# Prod
 services:
   postgres_db:
     image: postgres:18
@@ -11,5 +11,50 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+
+  bin2fits_fast_1_3_daemon:
+    # имя образа должно совпадать с именем в скрипте для GitHub Actions, откуда он его берет
+    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${APP_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      # внутри контейнера DB_HOST="postgres_db"
+      - DB_HOST=postgres_db
+    depends_on:
+      - postgres_db # ожидание старта БД
+    # Прокидываем пути из .env в контейнер (если они ссылаются на реальные папки ОС)
+    volumes:
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
+    command: ["--daemon"]
+
+  bin2fits_fast_1_3: #_cli
+    image: ghcr.io/andrei-shendrik/ratan-sun-bin2fits-fast-1-3ghz:${APP_VERSION:-latest}
+    restart: "no" # контейнер должен исчезнуть после выполнения задачи
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres_db
+    depends_on:
+      - postgres_db
+    volumes:
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
+    # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
+    # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"
+    profiles:
+      - cli
+# todo
+#services:
+#    djangoapi:
+#      image: ghcr.io/твое_имя_в_github/myproject-djangoapi:${APP_VERSION:-latest}
+#      restart: always
+#      env_file:
+#        - .env
+#      ports:
+#        - "8000:8000"
 volumes:
   pgdata:

@@ -22,8 +22,6 @@ venv/
 env/
 
 # log
-.log/
-log/
 *.log
 
 # Environment variables
@@ -32,5 +30,4 @@ log/
 !.env.example
 
 # user specific
-src/.old/
-release.py
+docker-compose.override.yml

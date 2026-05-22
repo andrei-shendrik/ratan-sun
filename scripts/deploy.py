@@ -36,7 +36,7 @@ def main():
 
     deploy = input("\nRun the deploy to production server (y/n): ")
     if deploy.lower() == 'y':
-        run_cmd(f"gh workflow run ./workflows/deploy.yml --ref main -f version={latest_tag}")
+        run_cmd(f"gh workflow run deploy.yml --ref main -f version={latest_tag}")
         print("Deploy has been started. Check GitHub Actions for status")
     sys.exit(0)
 

@@ -11,11 +11,18 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest # ОС внутри самого гитхаб
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.version }} # код конкретного тега
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -23,6 +30,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push bin2fits-fast-1-3ghz image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/bin2fits-fast-acquisition-1-3ghz/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.actor }}/ratan-sun-bin2fits-fast-1-3ghz:${{ github.event.inputs.version }}
 
       # Django
 #      - name: Build and push Django API

@@ -25,8 +25,8 @@ services:
       - postgres-db # ожидание старта БД
     # Прокидываем пути из .env в контейнер (если они ссылаются на реальные папки ОС)
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}
       - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
     command: ["--daemon"]
 
@@ -40,8 +40,8 @@ services:
     depends_on:
       - postgres-db
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/bin
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}
       - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
     # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
     # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"

@@ -1,5 +1,5 @@
 {
-  "footer_text": "СПб Филиал САО РАН",
+  "footer_text": "SPb Branch of SAO RAS",
   "auth": {
     "login": "Log In",
     "logout": "Log Out"
@@ -20,6 +20,6 @@
   },
   "orgName_line1": "Saint-Petersburg Branch of the",
   "orgName_line2": "Special Astrophysical Observatory",
-  "orgName_line3": "of Russian Academy of Sciences",
+  "orgName_line3": "of the Russian Academy of Sciences",
   "page_title": "SPBF SAO RAS"
 }

@@ -6,9 +6,9 @@ function App() {
     <BrowserRouter basename="/test">
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<div className="p-10 text-2xl text-center">Главная страница (пустая)</div>} />
-          <Route path="latest-observations" element={<div className="p-10 text-2xl text-center">Здесь будут графики!</div>} />
-          <Route path="*" element={<div className="p-10 text-xl text-center">Страница в разработке...</div>} />
+          <Route index element={<div className="p-10 text-2xl text-center">Главная</div>} />
+          <Route path="latest-observations" element={<div className="p-10 text-2xl text-center">Графики</div>} />
+          <Route path="*" element={<div className="p-10 text-xl text-center">В разработке</div>} />
         </Route>
       </Routes>
     </BrowserRouter>

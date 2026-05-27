@@ -1,0 +1,25 @@
+{
+  "footer_text": "СПб Филиал САО РАН",
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out"
+  },
+  "menu": {
+    "home": "Home",
+    "observations": "Observations",
+    "solar_obs": "Solar observations:",
+    "latest_fast_acq": "Overview of recent observational data",
+    "resources": "Resources",
+    "about": "About us",
+    "instrument": "Observational Instrument:",
+    "telescope": "Telescope",
+    "receivers": "Receiving complexes",
+    "science": "Research Activities:",
+    "publications": "Publications",
+    "contacts": "Contacts"
+  },
+  "orgName_line1": "Saint-Petersburg Branch of the",
+  "orgName_line2": "Special Astrophysical Observatory",
+  "orgName_line3": "of Russian Academy of Sciences",
+  "page_title": "SPBF SAO RAS"
+}

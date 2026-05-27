@@ -39,6 +39,20 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.actor }}/ratan-sun-bin2fits-fast-1-3ghz:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.actor }}/ratan-sun-bin2fits-fast-1-3ghz:latest
+
+      - name: Build and push react-web image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/react-web
+          file: ./apps/react-web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.actor }}/ratan-sun-react-web:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.actor }}/ratan-sun-react-web:latest
+          # Кэширование для ускорения сборки npm
+          cache-from: type=registry,ref=ghcr.io/${{ github.actor }}/ratan-sun-react-web:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.actor }}/ratan-sun-react-web:buildcache,mode=max
 
       # Django
 #      - name: Build and push Django API

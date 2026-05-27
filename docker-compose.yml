@@ -111,5 +111,11 @@ services:
     volumes:
       - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz:ro # режим Read Only (ro)
 
+  react-frontend:
+    image: ghcr.io/${GITHUB_ACTOR}/ratan-sun-react-web:${PROJECT_VERSION:-latest}
+    restart: always
+    ports:
+      - "127.0.0.1:8080:80" # привязка 8080 только к localhost, чтобы снаружи никто не мог обойти Apache
+
 volumes:
   pgdata:

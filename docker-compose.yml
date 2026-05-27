@@ -66,7 +66,7 @@ services:
       - .env
     environment:
       - DB_HOST=postgres-db
-      - REDIS_HOST=redis-cache
+      - REDIS_HOST=redis
     depends_on:
       - postgres-db
       - redis
@@ -87,7 +87,7 @@ services:
       - .env
     environment:
       - DB_HOST=postgres-db
-      - REDIS_HOST=redis-cache
+      - REDIS_HOST=redis
     depends_on:
       - django-api
       - redis-cache

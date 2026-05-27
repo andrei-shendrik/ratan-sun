@@ -3,7 +3,7 @@ import { MainLayout } from './layouts/MainLayout';
 
 function App() {
   return (
-    <BrowserRouter basename="/test">
+    <BrowserRouter> {/* <BrowserRouter basename="/test"> */}
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<div className="p-10 text-2xl text-center">Главная</div>} />

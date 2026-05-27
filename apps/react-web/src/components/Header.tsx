@@ -96,7 +96,6 @@ export const Header: React.FC = () => {
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* ФОН БЕЗ ПРОЗРАЧНОСТИ */}
             <div
                 className={`absolute top-0 left-0 w-full ${UI_CONFIG.header.backgroundClass} transition-[height] duration-300 ease-out shadow-xl`}
                 style={{ height: `calc(${UI_CONFIG.header.heightRem} + ${appliedHeight}px)` }}

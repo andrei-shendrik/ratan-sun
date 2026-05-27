@@ -90,7 +90,7 @@ services:
       - REDIS_HOST=redis
     depends_on:
       - django-api
-      - redis-cache
+      - redis
     volumes:
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
       - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz

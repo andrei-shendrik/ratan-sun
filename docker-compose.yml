@@ -25,9 +25,9 @@ services:
       - postgres-db # ожидание старта БД
     # Прокидываем пути из .env в контейнер (если они ссылаются на реальные папки ОС)
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:{BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
     command: ["--daemon"]
 
   bin2fits_fast_1_3: #_cli
@@ -40,21 +40,82 @@ services:
     depends_on:
       - postgres-db
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/logs
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:{BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
     # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
     # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"
     profiles:
       - cli
-# todo
-#services:
-#    djangoapi:
-#      image: ghcr.io/твое_имя_в_github/myproject-djangoapi:${APP_VERSION:-latest}
-#      restart: always
-#      env_file:
-#        - .env
-#      ports:
-#        - "8000:8000"
+
+  # site services
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  django-api:
+    # todo изменить на image
+    # image: ghcr.io/github_name/project-django-api-old:${APP_VERSION:-latest}
+    # restart: always
+    build:
+      context: .
+      dockerfile: apps/django-api-old/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis-cache
+    depends_on:
+      - postgres-db
+      - redis
+    volumes:
+      # прокидывание путей
+      - ${DJANGO_LOG_DIR}:/app/logs/ratan-sun/django
+    # запуск через Gunicorn на порту 8000
+    command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
+
+  # celery
+  data-worker:
+    # todo изменить на image
+    build:
+      context: .
+      dockerfile: apps/data-worker/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis-cache
+    depends_on:
+      - django-api
+      - redis-cache
+    volumes:
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz
+    # запуск worker'а
+    command: [ "celery", "-A", "data_worker.celery_app", "worker", "-l", "info" ]
+
+  nginx-web:
+    # todo изменить на image
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - django-api
+    volumes:
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz:ro # режим Read Only (ro)
+
+  react-frontend:
+    image: ghcr.io/${GITHUB_ACTOR}/ratan-sun-react-web:${PROJECT_VERSION:-latest}
+    restart: always
+    ports:
+      - "127.0.0.1:8080:80" # привязка 8080 только к localhost, чтобы снаружи никто не мог обойти Apache
+
 volumes:
   pgdata:

@@ -31,3 +31,5 @@ env/
 
 # user specific
 docker-compose.override.yml
+
+*.dev

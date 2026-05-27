@@ -27,7 +27,7 @@ services:
     volumes:
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:{BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
     command: ["--daemon"]
 
   bin2fits_fast_1_3: #_cli
@@ -42,7 +42,7 @@ services:
     volumes:
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:{BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}
     # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
     # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"
     profiles:

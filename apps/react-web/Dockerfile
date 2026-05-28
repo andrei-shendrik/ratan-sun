@@ -1,5 +1,5 @@
 # сборка
-FROM node:20-alpine as builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 # копируем package.json и устанавливаем зависимости
 COPY package*.json ./

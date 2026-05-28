@@ -8,9 +8,6 @@ on:
         required: true
         default: 'latest'
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest # ОС внутри самого гитхаб
@@ -20,42 +17,42 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.version }} # код конкретного тега
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push bin2fits-fast-1-3ghz image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/bin2fits-fast-acquisition-1-3ghz/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/ratan-sun-bin2fits-fast-1-3ghz:${{ github.event.inputs.version }}
-            ghcr.io/${{ github.actor }}/ratan-sun-bin2fits-fast-1-3ghz:latest
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3ghz:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3ghz:latest
 
       - name: Build and push react-web image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./apps/react-web
           file: ./apps/react-web/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/ratan-sun-react-web:${{ github.event.inputs.version }}
-            ghcr.io/${{ github.actor }}/ratan-sun-react-web:latest
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:latest
           # Кэширование для ускорения сборки npm
-          cache-from: type=registry,ref=ghcr.io/${{ github.actor }}/ratan-sun-react-web:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.actor }}/ratan-sun-react-web:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:buildcache,mode=max
 
       # Django
 #      - name: Build and push Django API
@@ -74,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Copy docker-compose to Server
         uses: appleboy/scp-action@master
@@ -94,16 +91,36 @@ jobs:
           script: |
             cd /main/ratan-sun
 
-            # Логиним сервер в твой GitHub Registry, чтобы он мог скачать приватные образы
+            # логин сервера GitHub Registry для скачивания образов
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # поиск в файле .env строки, которая начинается с PROJECT_VERSION= 
-            # замена ее на новый git-тег.
-            # если переменной там нет, добавление в конец файла
-            if grep -q "^PROJECT_VERSION=" .env; then
-              sed -i "s/^PROJECT_VERSION=.*/PROJECT_VERSION=${{ github.event.inputs.version }}/" .env
+            # 1. Обновление/запись PROJECT_VERSION в .env
+            # поиск в файле .env строки, которая начинается с PROJECT_VERSION= замена ее на новый git-тег.
+            # если переменной там нет, добавление в конец файла            
+            TARGET_VERSION="${{ github.event.inputs.version }}"
+            if ! grep -q "^PROJECT_VERSION=${TARGET_VERSION}$" .env; then
+              if grep -q "^PROJECT_VERSION=" .env; then
+                sed -i "s/^PROJECT_VERSION=.*/PROJECT_VERSION=${TARGET_VERSION}/" .env
+              else
+                echo "PROJECT_VERSION=${TARGET_VERSION}" >> .env
+              fi
+              echo "Updated PROJECT_VERSION to ${TARGET_VERSION}"
             else
-              echo "PROJECT_VERSION=${{ github.event.inputs.version }}" >> .env
+              # echo "PROJECT_VERSION is already up to date (${TARGET_VERSION})."
+            fi
+            
+            # 2. Обновление/запись REPOSITORY_OWNER
+            # приведение к нижнему регистру     
+            OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+            if ! grep -q "^REPOSITORY_OWNER=${OWNER_LOWERCASE}$" .env; then
+              if grep -q "^REPOSITORY_OWNER=" .env; then
+                sed -i "s/^REPOSITORY_OWNER=.*/REPOSITORY_OWNER=${OWNER_LOWERCASE}/" .env
+              else
+                echo "REPOSITORY_OWNER=${OWNER_LOWERCASE}" >> .env
+              fi
+              echo "Updated REPOSITORY_OWNER to ${OWNER_LOWERCASE}"
+            else
+              # echo "REPOSITORY_OWNER is already up to date (${OWNER_LOWERCASE})."
             fi
 
             # скачивание новых собранных образов

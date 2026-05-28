@@ -91,7 +91,7 @@ jobs:
           script: |
             cd /main/ratan-sun
 
-            # Логиним сервер в твой GitHub Registry, чтобы он мог скачать приватные образы
+            # логин сервера GitHub Registry для скачивания образов
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             # 1. Обновление/запись PROJECT_VERSION в .env

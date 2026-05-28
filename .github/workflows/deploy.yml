@@ -105,8 +105,6 @@ jobs:
                 echo "PROJECT_VERSION=${TARGET_VERSION}" >> .env
               fi
               echo "Updated PROJECT_VERSION to ${TARGET_VERSION}"
-            else
-              # echo "PROJECT_VERSION is already up to date (${TARGET_VERSION})."
             fi
             
             # 2. Обновление/запись REPOSITORY_OWNER
@@ -119,8 +117,6 @@ jobs:
                 echo "REPOSITORY_OWNER=${OWNER_LOWERCASE}" >> .env
               fi
               echo "Updated REPOSITORY_OWNER to ${OWNER_LOWERCASE}"
-            else
-              # echo "REPOSITORY_OWNER is already up to date (${OWNER_LOWERCASE})."
             fi
 
             # скачивание новых собранных образов

@@ -1,17 +1,28 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import ru from './locales/ru/ru.json';
-import en from './locales/en/en.json';
 
-i18n
+import commonRu from './locales/ru/common.json';
+import headerRu from './locales/ru/header.json';
+import commonEn from './locales/en/common.json';
+import headerEn from './locales/en/header.json';
+
+void i18n
   .use(initReactI18next)
   .init({
     resources: {
-      ru: { translation: ru },
-      en: { translation: en }
+      ru: {
+        common: commonRu,
+        header: headerRu
+      },
+      en: {
+        common: commonEn,
+        header: headerEn
+      }
     },
-    lng: 'ru', // язык по умолчанию
+    lng: 'ru',
     fallbackLng: 'ru',
+    // Указываем, какой файл использовать по умолчанию (если разработчик не указал namespace явно)
+    defaultNS: 'common',
     interpolation: { escapeValue: false }
   });
 

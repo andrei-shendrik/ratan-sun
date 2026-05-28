@@ -5,46 +5,139 @@ import { useTranslation } from 'react-i18next';
 import { UI_CONFIG } from '../config/ui';
 import orgLogo from '../assets/saologo.png';
 
-interface MenuItem { key: string; labelKey: string; path?: string; subItems?: SubMenuGroup[]; }
-interface SubMenuGroup { groupLabelKey: string; items: { labelKey: string; path: string }[]; }
+interface SubMenuItem { labelKey: string; path: string; external?: boolean; }
+interface SubMenuGroup { groupLabelKey: string; items: SubMenuItem[]; }
+interface SubMenuColumn { groups: SubMenuGroup[]; }
+interface MenuItem { key: string; labelKey: string; path?: string; subColumns?: SubMenuColumn[]; }
 
 const MENU_ITEMS: MenuItem[] = [
     { key: 'home', labelKey: 'menu.home', path: '/' },
     {
-        key: 'observations', labelKey: 'menu.observations',
-        subItems: [{ groupLabelKey: 'menu.solar_obs', items: [{ labelKey: 'menu.latest_fast_acq', path: '/latest-observations' }] }]
+        key: 'observations', labelKey: 'menu.observations.title',
+        subColumns: [
+            { // Колонка 1
+                groups: [{
+                    groupLabelKey: 'menu.observations.groups.solar',
+                    items: [
+                        { labelKey: 'menu.observations.items.latest', path: '/latest-observations' },
+                        { labelKey: 'menu.observations.items.archive', path: 'https://solar.sao.ru/data', external: true },
+                        { labelKey: 'menu.observations.items.schedule', path: '/observation-schedule' }
+                    ]
+                }]
+            },
+            { // Колонка 2
+                groups: [{
+                    groupLabelKey: 'menu.observations.groups.selection',
+                    items: [
+                        { labelKey: 'menu.observations.items.fast_acq_1_3', path: '/select-of-observation-fast-acq-1-3ghz' },
+                        { labelKey: 'menu.observations.items.sspc', path: '/select-of-observation-sspc-3-18ghz' }
+                    ]
+                }]
+            }
+        ]
     },
-    { key: 'resources', labelKey: 'menu.resources', path: '/resources' },
     {
-        key: 'about', labelKey: 'menu.about',
-        subItems: [
-            { groupLabelKey: 'menu.instrument', items: [{ labelKey: 'menu.telescope', path: '/telescope' }, { labelKey: 'menu.receivers', path: '/receivers' }] },
-            { groupLabelKey: 'menu.science', items: [{ labelKey: 'menu.publications', path: '/publications' }] }
+        key: 'resources', labelKey: 'menu.resources.title',
+        subColumns: [{
+            groups: [
+                {
+                    groupLabelKey: 'menu.resources.groups.general',
+                    items: [
+                        { labelKey: 'menu.resources.items.forecast', path: 'http://spbf.sao.ru/prognoz', external: true },
+                        { labelKey: 'menu.resources.items.jets', path: '/coronal-jets-catalog', external: true },
+                        { labelKey: 'menu.resources.items.dataview', path: '/dataview/', external: true }
+                    ]
+                },
+                {
+                    groupLabelKey: 'menu.resources.groups.software',
+                    items: [
+                        { labelKey: 'menu.resources.items.ratanpy', path: 'https://github.com/andrei-shendrik/ratanpy', external: true }
+                    ]
+                }
+            ]
+        }]
+    },
+    {
+        key: 'about', labelKey: 'menu.about.title',
+        subColumns: [
+            {
+                groups: [{
+                    groupLabelKey: 'menu.about.groups.instrument',
+                    items: [
+                        { labelKey: 'menu.about.items.telescope', path: '/telescope' },
+                        { labelKey: 'menu.about.items.receivers', path: '/receivers' }
+                    ]
+                }]
+            },
+            {
+                groups: [
+                    {
+                        groupLabelKey: 'menu.about.groups.about_us',
+                        items: [{ labelKey: 'menu.about.items.branch', path: '/about-us' }]
+                    },
+                    {
+                        groupLabelKey: 'menu.about.groups.science',
+                        items: [{ labelKey: 'menu.about.items.publications', path: '/publications' }]
+                    }
+                ]
+            }
         ]
     },
     { key: 'contacts', labelKey: 'menu.contacts', path: '/contacts' },
 ];
 
 export const Header: React.FC = () => {
-    const { t, i18n } = useTranslation();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { t, i18n } = useTranslation('header');
+    const { t: tCommon } = useTranslation('common');
 
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [renderedMenuKey, setRenderedMenuKey] = useState<string | null>(null);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [contentHeight, setContentHeight] = useState(0);
 
+    // НОВОЕ: Состояние для хранения отступа слева
+    const [dropdownPaddingLeft, setDropdownPaddingLeft] = useState<number | null>(null);
+
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const mouseLocs = useRef<{ x: number; y: number }[]>([]);
-    const contentRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { document.title = t('page_title'); }, [i18n.language, t]);
+    const navRef = useRef<HTMLUListElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const innerContentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => { document.title = tCommon('page_title'); }, [i18n.language, tCommon]);
+
+    // расчет выравнивания
+    const calculateAlignment = () => {
+        if (navRef.current && innerContentRef.current) {
+            // navRect содержит координаты и размеры менюбара
+            const navRect = navRef.current.getBoundingClientRect();
+            // ширина контента выпадающего подменю
+            const contentWidth = innerContentRef.current.getBoundingClientRect().width;
+
+            if (contentWidth <= navRect.width) {
+                // выравнивание по левому краю
+                setDropdownPaddingLeft(navRect.left);
+            } else {
+                // если шире -- выравнивание по центру
+                setDropdownPaddingLeft(null);
+            }
+        }
+    };
 
     useLayoutEffect(() => {
         if (isPanelOpen && contentRef.current) {
             setContentHeight(contentRef.current.scrollHeight);
+            calculateAlignment();
         }
     }, [renderedMenuKey, isPanelOpen]);
+
+    // пересчет при ресайзе окна
+    useEffect(() => {
+        window.addEventListener('resize', calculateAlignment);
+        return () => window.removeEventListener('resize', calculateAlignment);
+    }, []);
 
     const handleMouseMove = (e: React.MouseEvent) => {
         mouseLocs.current.push({ x: e.clientX, y: e.clientY });
@@ -53,12 +146,10 @@ export const Header: React.FC = () => {
 
     const handleMouseEnter = (key: string) => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
         const locs = mouseLocs.current;
         const isMovingDown = locs.length > 1 && locs[locs.length - 1].y > locs[0].y + 2;
-
         const targetItem = MENU_ITEMS.find(m => m.key === key);
-        const hasSubItems = !!(targetItem && targetItem.subItems && targetItem.subItems.length > 0);
+        const hasSubItems = !!(targetItem && targetItem.subColumns && targetItem.subColumns.length > 0);
 
         const applyState = () => {
             setActiveMenu(key);
@@ -86,8 +177,7 @@ export const Header: React.FC = () => {
     };
 
     const toggleLang = () => i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
-
-    const activeSubItems = MENU_ITEMS.find(m => m.key === renderedMenuKey)?.subItems;
+    const activeSubColumns = MENU_ITEMS.find(m => m.key === renderedMenuKey)?.subColumns;
     const appliedHeight = isPanelOpen ? contentHeight : 0;
 
     return (
@@ -101,21 +191,20 @@ export const Header: React.FC = () => {
                 style={{ height: `calc(${UI_CONFIG.header.heightRem} + ${appliedHeight}px)` }}
             />
 
-            {/* ГЛАВНАЯ ПОЛОСА */}
             <div className={`relative flex items-center justify-between ${UI_CONFIG.layout.pagePadding} ${UI_CONFIG.header.heightClass}`}>
 
                 <Link to="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
                     <img src={orgLogo} alt="Логотип САО РАН" className="h-16 w-auto object-contain shrink-0" />
-
                     <div className={`${UI_CONFIG.fonts.orgName} w-max text-center`}>
-                        {t('orgName_line1')}<br/>
-                        {t('orgName_line2')}<br/>
-                        {t('orgName_line3')}
+                        {t('orgName.line1')}<br/>
+                        {t('orgName.line2')}<br/>
+                        {t('orgName.line3')}
                     </div>
                 </Link>
 
                 <nav className="absolute left-1/2 transform -translate-x-1/2 h-full hidden lg:flex items-center">
-                    <ul className={`flex items-center gap-12 ${UI_CONFIG.fonts.menuStandard}`}>
+                    {/* НОВОЕ: Повесили ref на ul, чтобы знать координаты менюбара */}
+                    <ul ref={navRef} className={`flex items-center gap-12 ${UI_CONFIG.fonts.menuStandard}`}>
                         {MENU_ITEMS.map(item => (
                             <li
                                 key={item.key}
@@ -147,26 +236,47 @@ export const Header: React.FC = () => {
                 </div>
             </div>
 
-            {/* content container */}
             <div
                 className="absolute left-0 w-full overflow-hidden transition-[height,opacity] duration-300 ease-out"
-                style={{
-                    top: UI_CONFIG.header.heightRem,
-                    height: `${appliedHeight}px`,
-                    opacity: isPanelOpen ? 1 : 0
-                }}
+                style={{ top: UI_CONFIG.header.heightRem, height: `${appliedHeight}px`, opacity: isPanelOpen ? 1 : 0 }}
             >
-                <div ref={contentRef} className="py-6 max-w-4xl mx-auto flex gap-16 justify-center">
-                    {activeSubItems?.map((group, idx) => (
-                        <div key={idx} className="flex flex-col gap-2">
-                            <span className="text-gray-700 font-semibold text-sm mb-2">{t(group.groupLabelKey)}</span>
-                            {group.items.map(subItem => (
-                                <Link key={subItem.path} to={subItem.path} className={`hover:text-white transition-colors ${UI_CONFIG.fonts.menuStandard}`}>
-                                    {t(subItem.labelKey)}
-                                </Link>
-                            ))}
-                        </div>
-                    ))}
+                <div
+                    ref={contentRef}
+                    className={`w-full ${dropdownPaddingLeft !== null ? 'flex justify-start' : 'flex justify-center'}`}
+                    style={{ paddingLeft: dropdownPaddingLeft !== null ? `${dropdownPaddingLeft}px` : '0px' }}
+                >
+                    <div ref={innerContentRef} className="py-6 flex gap-20 w-max">
+                        {activeSubColumns?.map((col, colIdx) => (
+                            <div key={colIdx} className="flex flex-col gap-6">
+                                {col.groups.map((group, grpIdx) => (
+                                    <div key={grpIdx} className="flex flex-col gap-2">
+                                        <span className="text-gray-700 font-semibold text-sm mb-2">{t(group.groupLabelKey)}</span>
+                                        {group.items.map((subItem, itemIdx) => (
+                                            subItem.external ? (
+                                                <a
+                                                    key={itemIdx}
+                                                    href={subItem.path}
+                                                    target={subItem.path.startsWith('http') ? '_blank' : '_self'}
+                                                    rel={subItem.path.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                                    className={`hover:text-white transition-colors ${UI_CONFIG.fonts.menuStandard}`}
+                                                >
+                                                    {t(subItem.labelKey)}
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    key={itemIdx}
+                                                    to={subItem.path}
+                                                    className={`hover:text-white transition-colors ${UI_CONFIG.fonts.menuStandard}`}
+                                                >
+                                                    {t(subItem.labelKey)}
+                                                </Link>
+                                            )
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </header>

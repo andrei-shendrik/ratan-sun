@@ -20,7 +20,8 @@ dependencies = [
     "plotly",
     "sunpy",
     "colorama",
-    "pydantic"
+    "pydantic",
+    "psutil"
 ]
 
 [tool.deptry]

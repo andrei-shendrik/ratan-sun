@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { UI_CONFIG } from '../../config/ui';
-import orgLogo from '../../assets/saologo.png';
+import orgLogo from '../../assets/sao-logo-300x180.png';
 
 export const Logo: React.FC<{ showText: boolean }> = ({ showText }) => {
     const { t } = useTranslation('header');

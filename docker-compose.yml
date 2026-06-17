@@ -1,101 +1,96 @@
 # Prod
 services:
   postgres-db:
-    image: postgres:18
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-postgres:${PROJECT_VERSION:-latest}
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "${DB_PORT}:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      APP_DB_NAME: ${APP_DB_NAME}
+    # портов нет
     volumes:
       - pgdata:/var/lib/postgresql
 
-  bin2fits_fast_1_3_daemon:
-    # имя образа должно совпадать с именем в скрипте для GitHub Actions, откуда он его берет
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-bin2fits-fast-1-3ghz:${PROJECT_VERSION:-latest}
+  redis:
+    image: redis:8.8-alpine
     restart: always
-    env_file:
-      - .env
-    environment:
-      # внутри контейнера DB_HOST="postgres-db"
-      - DB_HOST=postgres-db
-    depends_on:
-      - postgres-db # ожидание старта БД
-    # Прокидываем пути из .env в контейнер (если они ссылаются на реальные папки ОС)
-    volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/main/logs/bin2fits_fast_1_3
-    command: ["--daemon"]
 
-  bin2fits_fast_1_3: #_cli
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-bin2fits-fast-1-3ghz:${PROJECT_VERSION:-latest}
+  bin2fits-fast-1-3-nodb: #_cli
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-bin2fits-fast-1-3ghz-nodb:${PROJECT_VERSION:-latest}
     restart: "no" # контейнер должен исчезнуть после выполнения задачи
     env_file:
       - .env
     environment:
+      - TZ=${TZ:-Europe/Moscow}
       - DB_HOST=postgres-db
+      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
+      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
+      - BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR=/main/logs/ratan-sun/bin2fits-fast-1-3-nodb
     depends_on:
       - postgres-db
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_LOG_DIR}:/app/main/logs/bin2fits_fast_1_3
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR}:/main/logs/ratan-sun/bin2fits-fast-1-3-nodb
     # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
     # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"
     profiles:
       - cli
 
-  # site services
-#
-#  redis:
-#    image: redis:7-alpine
-#    restart: always
-#
-#  django-api:
-#    # todo изменить на image
-#    # image: ghcr.io/github_name/project-django-api-old:${APP_VERSION:-latest}
-#    # restart: always
-#    build:
-#      context: .
-#      dockerfile: apps/django-api-old/Dockerfile
-#    restart: always
-#    env_file:
-#      - .env
-#    environment:
-#      - DB_HOST=postgres-db
-#      - REDIS_HOST=redis
-#    depends_on:
-#      - postgres-db
-#      - redis
-#    volumes:
-#      # прокидывание путей
-#      - ${DJANGO_LOG_DIR}:/app/logs/ratan-sun/django
-#    # запуск через Gunicorn на порту 8000
-#    command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
-#
-#  # celery
-#  data-worker:
-#    # todo изменить на image
-#    build:
-#      context: .
-#      dockerfile: apps/data-worker/Dockerfile
-#    restart: always
-#    env_file:
-#      - .env
-#    environment:
-#      - DB_HOST=postgres-db
-#      - REDIS_HOST=redis
-#    depends_on:
-#      - django-api
-#      - redis
-#    volumes:
-#      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-#      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz
-#    # запуск worker'а
-#    command: [ "celery", "-A", "data_worker.celery_app", "worker", "-l", "info" ]
+  # website services
+  django-api:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres-db
+      - redis
+    volumes:
+      # прокидывание путей
+      - ${DJANGO_LOG_DIR}:/app/logs/ratan-sun/django
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json
+    # запуск через Gunicorn на порту 8000
+    # command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
+    command: >
+      sh -c "uv run python src/manage.py migrate &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+      
+  # celery: исполнитель
+  data-worker:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+    restart: always
+    env_file: [ ".env" ]
+    environment:
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis
+    depends_on:
+      - django-api
+      - redis
+    volumes:
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/fits:ro # чтение fits
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json     # запись json
+    # переопределение команды запуска celery
+    command: [ "uv", "run", "celery", "-A", "config", "worker", "-l", "info" ] #  "-B" Beat
+
+  # celery: планировщик (генерация задач и передача исполнителю)
+  celery-beat:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+    restart: always
+    env_file: [ ".env" ]
+    environment:
+      - DB_HOST=postgres-db
+      - REDIS_HOST=redis
+    depends_on:
+      - django-api
+      - redis
+    command: [ "uv", "run", "celery", "-A", "config", "beat", "-l", "info" ]
+
 #
 #  nginx-web:
 #    # todo изменить на image

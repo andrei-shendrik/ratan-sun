@@ -11,6 +11,7 @@ class LoggingSettings(BaseModel):
     log_format: str
     date_format: str
     rotation_size_mb: int
+    backup_count: int
     handlers: Dict[str, str]
 
     @field_validator("handlers", mode="before")

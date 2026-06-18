@@ -156,7 +156,7 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         header['T_START'] = (metadata.datetime_reg_start_utc.isoformat(), f"Observation Start Time, UTC")
         header['T_STOP'] = (metadata.datetime_reg_stop_utc.isoformat(), f"Observation Stop Time, UTC")
 
-        header['OBJECT'] = metadata.observation_object
+        header['OBJECT'] = metadata.object_of_observation
         header['AZIMUTH'] = metadata.azimuth
         if metadata.altitude is not None:
             header['ALTITUDE'] = (metadata.altitude.value, f"Unit: {metadata.altitude.unit}")

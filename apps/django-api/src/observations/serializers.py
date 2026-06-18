@@ -7,7 +7,7 @@ class LatestObservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FitsObservationFastAcquisition1To3GHzDB
-        fields = ['id', 'datetime_culmination_feed_horn_utc', 'azimuth', 'observation_object', 'json_url']
+        fields = ['id', 'datetime_culmination_feed_horn_utc', 'azimuth', 'object_of_observation', 'json_url']
 
     def get_json_url(self, obj):
         if not obj.json_path:

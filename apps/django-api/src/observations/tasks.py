@@ -41,7 +41,7 @@ def process_fast_acquisition_1_3ghz_fits():
                         'fits_path_filename': str(fits_file_path),
                         'fits_filename': fits_filename,
                         'telescope': 'RATAN-600',
-                        'observation_object': 'sun',
+                        'object_of_observation': 'sun',
                         'azimuth': 0.0,
                         'datetime_culmination_feed_horn_utc': job.updated_at,
                         'json_path': f"/data/products/web_json/sun/{fits_filename}.json"

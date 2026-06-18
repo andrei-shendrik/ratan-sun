@@ -68,7 +68,7 @@ class SSPCMetadata(RatanObservationMetadata):
         self._declination = None
         self._is_bad = None
         self._is_calibrated = None
-        self._observation_object = None
+        self._object_of_observation = None
         self._polarization_components = None
         self._right_ascension = None
         self._solar_b_angle = None
@@ -238,12 +238,12 @@ class SSPCMetadata(RatanObservationMetadata):
         self._is_calibrated = value
 
     @property
-    def observation_object(self):
-        return self._observation_object
+    def object_of_observation(self):
+        return self._object_of_observation
 
-    @observation_object.setter
-    def observation_object(self, value):
-        self._observation_object = value
+    @object_of_observation.setter
+    def object_of_observation(self, value):
+        self._object_of_observation = value
 
     @property
     def polarization_components(self):

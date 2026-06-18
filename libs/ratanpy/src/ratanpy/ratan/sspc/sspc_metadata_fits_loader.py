@@ -46,7 +46,7 @@ class SSPCMetadataFitsLoader(RatanMetadataLoader):
         metadata.telescope = fits_header_reader.get_value("TELESCOP")
         metadata.naxis = fits_header_reader.get_value("NAXIS")
         metadata.naxis1 = fits_header_reader.get_value("NAXIS1")
-        metadata.object = fits_header_reader.get_value("OBJECT")
+        metadata.object_of_observation = fits_header_reader.get_value("OBJECT")
         metadata.azimuth = fits_header_reader.get_value("AZIMUTH")
         calibr = fits_header_reader.get_value("CALIBR")
         if calibr == 1:

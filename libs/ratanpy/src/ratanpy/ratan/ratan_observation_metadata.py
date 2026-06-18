@@ -80,12 +80,12 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def observation_object(self) -> str:
+    def object_of_observation(self) -> str:
         pass
 
-    @observation_object.setter
+    @object_of_observation.setter
     @abstractmethod
-    def observation_object(self, value: str):
+    def object_of_observation(self, value: str):
         pass
 
     @property

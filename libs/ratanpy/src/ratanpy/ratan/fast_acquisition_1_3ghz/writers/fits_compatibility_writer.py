@@ -55,7 +55,7 @@ class FitsCompatibilityWriter:
         header["DSPDT"] = 0
 
         # COMMENT   *** Object parameters ***
-        header['OBJECT'] = self._metadata.observation_object
+        header['OBJECT'] = self._metadata.object_of_observation
         header['AZIMUTH'] = self._metadata.azimuth
         header['ALTITUDE'] = self._metadata.altitude
         header['SOL_DEC'] = self._metadata.solar_declination

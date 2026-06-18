@@ -67,7 +67,7 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         desc_data = desc_reader.read(metadata.desc_file)
 
         metadata.telescope = "RATAN-600"
-        metadata.observation_object = desc_data.get_value("object")
+        metadata.object_of_observation = desc_data.get_value("object")
         azimuth_str = desc_data.get_value("azimuth")
         try:
             metadata.azimuth = float(azimuth_str)

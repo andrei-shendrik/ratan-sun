@@ -15,7 +15,8 @@ dependencies = [
     "psycopg2-binary",
     "celery",
     "redis",
-    "python-dotenv"
+    "python-dotenv",
+    "pydantic_settings"
 ]
 
 [tool.hatch.build.targets.wheel]

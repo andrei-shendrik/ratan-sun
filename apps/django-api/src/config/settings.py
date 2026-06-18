@@ -150,3 +150,80 @@ REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}:6379/0'
 CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:6379/0'
+
+# логирование
+DJANGO_API_LOG_DIR = Path(os.environ.get('DJANGO_API_LOG_DIR', BASE_DIR / 'logs'))
+DJANGO_API_LOG_DIR.mkdir(parents=True, exist_ok=True)
+DJANGO_API_LOG_LEVEL = os.environ.get('DJANGO_API_LOG_LEVEL')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] [{levelname}] [{name}] {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file_debug': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': DJANGO_API_LOG_DIR / 'debug.log',
+            'maxBytes': 10 * 1024 * 1024, # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'DEBUG',
+        },
+        'file_info': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': DJANGO_API_LOG_DIR / 'info.log',
+            'maxBytes': 10 * 1024 * 1024, # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'INFO',
+        },
+        'file_warning': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': DJANGO_API_LOG_DIR / 'warning.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'WARNING',
+        },
+        'file_error': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': DJANGO_API_LOG_DIR / 'error.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'ERROR',
+        },
+        'file_critical': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': DJANGO_API_LOG_DIR / 'critical.log',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'level': 'CRITICAL',
+        },
+    },
+    'loggers': {
+        # логи observations
+        'observations': {
+            'handlers': ['console', 'file_debug', 'file_info', 'file_warning', 'file_error', 'file_critical'],
+            'level': DJANGO_API_LOG_LEVEL,
+            'propagate': False,
+        },
+        # системные логи celery
+        'celery': {
+            'handlers': ['console', 'file_debug', 'file_info', 'file_warning', 'file_error', 'file_critical'],
+            'level': DJANGO_API_LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+}

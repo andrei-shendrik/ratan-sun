@@ -111,7 +111,7 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._polarizations = None
 
         self._telescope = None
-        self._observation_object = None
+        self._object_of_observation = None
         self._azimuth = None
         self._altitude = None
         self._declination = None
@@ -307,12 +307,12 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._telescope = value
 
     @property
-    def observation_object(self):
-        return self._observation_object
+    def object_of_observation(self):
+        return self._object_of_observation
 
-    @observation_object.setter
-    def observation_object(self, value):
-        self._observation_object = value
+    @object_of_observation.setter
+    def object_of_observation(self, value):
+        self._object_of_observation = value
 
     @property
     def azimuth(self):

@@ -186,6 +186,9 @@ BACKEND_LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL')
 
 # celery будет использовать настройки логов django
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+LOG_TIME_ZONE = 'Europe/Moscow'
 
 # форматтер логов
 class LocalTimeFormatter(logging.Formatter):
@@ -193,8 +196,9 @@ class LocalTimeFormatter(logging.Formatter):
         dt = datetime.fromtimestamp(record.created, tz=ZoneInfo("UTC"))
         # конвертация в часовой пояс, заданный в ОС (через docker-compose TZ)
         # если переменной нет, fallback на мск
-        local_tz = os.environ.get('TZ', 'Europe/Moscow')
-        dt_local = dt.astimezone(ZoneInfo(local_tz))
+        # local_tz = os.environ.get('TZ', 'Europe/Moscow')
+        # dt_local = dt.astimezone(ZoneInfo(local_tz))
+        dt_local = dt.astimezone(ZoneInfo(LOG_TIME_ZONE))
 
         if datefmt:
             return dt_local.strftime(datefmt)

@@ -8,10 +8,6 @@ bin2fits_fast_1_3 multiprocessing
 ### Refactored
 Changed structure of project
 
-## [2.0.0] - 2026-05-22
-### Refactored
-Changed structure of project
-
 ## [2.1.0] - 2026-07-03
 ### Added
 backend, broker, cache

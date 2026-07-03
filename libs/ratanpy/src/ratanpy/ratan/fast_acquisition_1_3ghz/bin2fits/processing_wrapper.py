@@ -55,7 +55,8 @@ class FastAcquisition1To3GHzProcessingWrapper:
 
         year, month = bin_file.name[:4], bin_file.name[5:7]
         fits_filename = bin_file.name.replace('.bin.gz', '.fits').replace('.bin', '.fits').lower()
-        output_fits_file = fits_base_dir / year / month / fits_filename
+        # todo remove hardcode
+        output_fits_file = fits_base_dir / "sun" / year / month / fits_filename
 
         # if filename.endswith('.bin.gz'):
         #     fits_filename = filename.replace('.bin.gz', '.fits').lower()

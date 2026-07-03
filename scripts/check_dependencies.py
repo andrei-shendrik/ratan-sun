@@ -14,7 +14,8 @@ def main():
     success = True
 
     commands = [
-        "deptry apps/bin2fits-fast-acquisition-1-3ghz --config apps/bin2fits-fast-acquisition-1-3ghz/pyproject.toml",
+        "deptry apps/bin2fits-fast-acquisition-1-3ghz-nodb --config apps/bin2fits-fast-acquisition-1-3ghz-nodb/pyproject.toml",
+        "deptry apps/backend --config apps/backend/pyproject.toml",
         "deptry libs/ratanpy --config libs/ratanpy/pyproject.toml",
     ]
 

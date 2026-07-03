@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ratanpy"
-version = "2.0.1"
+version = "2.0.5"
 requires-python = ">= 3.12"
 description = "Library for working with RATAN-600 solar observations data"
 authors = [
@@ -20,8 +20,12 @@ dependencies = [
     "plotly",
     "sunpy",
     "colorama",
-    "pydantic"
+    "pydantic",
+    "psutil"
 ]
 
 [tool.deptry]
 known_first_party = ["ratanpy"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ratanpy"]

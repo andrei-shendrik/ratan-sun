@@ -5,7 +5,7 @@ tasks:
     desc: "Check dependencies"
     cmds:
       - uv run deptry apps/bin2fits-fast-acquisition-1-3ghz/src
-      - uv run deptry apps/data-worker/src
+      - uv run deptry apps/obs-processor/src
       - uv run deptry libs/ratanpy/src
 
   up:

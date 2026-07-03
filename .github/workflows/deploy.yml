@@ -31,55 +31,68 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push bin2fits-fast-1-3ghz image
+      - name: Build and push database image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./infra/postgres
+          file: ./infra/postgres/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-db:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-db:latest
+
+      - name: Build and push bin2fits-fast-1-3-nodb image
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: apps/bin2fits-fast-acquisition-1-3ghz/Dockerfile
+          file: apps/bin2fits-fast-acquisition-1-3ghz-nodb/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3ghz:${{ github.event.inputs.version }}
-            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3ghz:latest
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3-nodb:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3-nodb:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3-nodb:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-bin2fits-fast-1-3-nodb:buildcache,mode=max
 
-      - name: Build and push react-web image
+      - name: Build and push frontend image
         uses: docker/build-push-action@v7
         with:
-          context: ./apps/react-web
-          file: ./apps/react-web/Dockerfile
+          context: ./apps/frontend
+          file: ./apps/frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:${{ github.event.inputs.version }}
-            ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:latest
-          # Кэширование для ускорения сборки npm
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-react-web:buildcache,mode=max
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-frontend:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-frontend:latest
+          # кэширование для ускорения сборки npm
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-frontend:buildcache,mode=max
 
-      # Django
-#      - name: Build and push Django API
-#        uses: docker/build-push-action@v5
-#        with:
-#          context: .
-#          file: ./apps/djangoapi/Dockerfile
-#          push: true
-#          tags: ghcr.io/${{ github.repository_owner }}/myproject-djangoapi:${{ github.event.inputs.version }}
-
-      # Аналогично React
-      # ...
+      - name: Build and push backend image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./apps/backend
+          file: ./apps/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-backend:${{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ratan-sun-backend:latest
+          # кэширование
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-backend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/ratan-sun-backend:buildcache,mode=max
 
   deploy-to-server:
-    needs: build-and-push # Ждем, пока соберутся образы
+    needs: build-and-push # ожидание пока соберутся образы
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Copy docker-compose to Server
+      - name: Copy docker-compose and infrastructure to the server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml, infra/postgres/init-db.sh"
           target: "/main/ratan-sun"
 
       - name: SSH to Production and Deploy
@@ -90,6 +103,8 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /main/ratan-sun
+            
+            chmod +x infra/postgres/init-db.sh
 
             # логин сервера GitHub Registry для скачивания образов
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin

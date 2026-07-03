@@ -29,6 +29,9 @@ env/
 .env.*
 !.env.example
 
+# celery
+celerybeat-schedule*
+
 # user specific
 docker-compose.override.yml
 

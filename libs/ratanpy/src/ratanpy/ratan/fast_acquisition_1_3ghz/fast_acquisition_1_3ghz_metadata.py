@@ -1,3 +1,4 @@
+from ratanpy.ratan.observation_mode import ObservationMode
 from ratanpy.ratan.ratan_observation_metadata import RatanObservationMetadata
 
 
@@ -91,6 +92,8 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         # POL_CH0 = "LHCP"
         # POL_CH1 = "RHCP"
 
+        self._observation_mode = None
+
         self._datetime_reg_start_utc = None # startobs
         self._datetime_reg_start_local = None
 
@@ -111,7 +114,7 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._polarizations = None
 
         self._telescope = None
-        self._observation_object = None
+        self._object_of_observation = None
         self._azimuth = None
         self._altitude = None
         self._declination = None
@@ -193,6 +196,14 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @desc_file.setter
     def desc_file(self, value):
         self._desc_file = value
+
+    @property
+    def observation_mode(self) -> ObservationMode:
+        return self._observation_mode
+
+    @observation_mode.setter
+    def observation_mode(self, value: ObservationMode):
+        self._observation_mode = value
 
     @property
     def datetime_reg_start_utc(self):
@@ -307,12 +318,12 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._telescope = value
 
     @property
-    def observation_object(self):
-        return self._observation_object
+    def object_of_observation(self):
+        return self._object_of_observation
 
-    @observation_object.setter
-    def observation_object(self, value):
-        self._observation_object = value
+    @object_of_observation.setter
+    def object_of_observation(self, value):
+        self._object_of_observation = value
 
     @property
     def azimuth(self):

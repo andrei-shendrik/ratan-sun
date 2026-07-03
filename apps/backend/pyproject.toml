@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "backend"
+version = "0.1.0"
+requires-python = ">= 3.12"
+description = ""
+
+dependencies = [
+    "django",
+    "djangorestframework",
+    "django-cors-headers",
+    "psycopg2-binary",
+    "celery",
+    "redis",
+    "python-dotenv",
+    "ratanpy",
+    "psutil",
+    "python-dateutil",
+    "pydantic"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.uv.sources]
+ratanpy = { workspace = true }
+
+[tool.deptry]
+known_first_party = ["observations"]
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["django-cors-headers", "psycopg2-binary", "redis"]

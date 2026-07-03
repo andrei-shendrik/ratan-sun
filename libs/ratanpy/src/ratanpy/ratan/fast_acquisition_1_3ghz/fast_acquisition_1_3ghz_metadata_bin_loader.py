@@ -1,5 +1,6 @@
 import logging
 import sys
+import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -10,6 +11,8 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates import SkyCoord, AltAz
 from astropy.time import Time
+from astropy.utils.iers import conf as iers_conf, IERSWarning
+from astropy.utils.data import conf as data_conf
 
 from ratanpy.ratan.coordinate_axes import CoordinateAxes
 from ratanpy.ratan.data_receiver import DataReceiver
@@ -21,6 +24,7 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_metadata impo
     FastAcquisition1To3GHzMetadata
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.fast_acquisition_1_3ghz_raw_data import \
     FastAcquisition1To3GHzRawData
+from ratanpy.ratan.observation_mode import ObservationMode
 from ratanpy.ratan.polarization_type import PolarizationType
 from ratanpy.ratan.services.ratan_metadata_loader import RatanMetadataLoader
 from ratanpy.utils.file_utils import FileUtils
@@ -67,7 +71,12 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         desc_data = desc_reader.read(metadata.desc_file)
 
         metadata.telescope = "RATAN-600"
-        metadata.observation_object = desc_data.get_value("object")
+        metadata.object_of_observation = desc_data.get_value("object")
+
+        # todo
+        if metadata.object_of_observation == "sun":
+            metadata.observation_mode = ObservationMode.REGULAR
+
         azimuth_str = desc_data.get_value("azimuth")
         try:
             metadata.azimuth = float(azimuth_str)
@@ -108,6 +117,38 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         metadata.declination = astropy.coordinates.Angle(dec0, unit=u.deg)
 
         metadata.solar_r = sunpy.coordinates.sun.angular_radius(observing_time)
+        """ 
+        Расчет позиционного угла solar_p делается с помощью библиотеки astropy
+        Для этого используются внешние данные: IERS-A
+        International Earth Rotation Service (IERS) Bulletin A: Rapid Earth Orientation Data
+        
+        Данные могут оказаться недоступны, чтобы предотвратить падение выполнения в таком случае:
+        iers_conf.auto_max_age = None
+        
+        уменьшить таймаут что данные недоступны (дефолт 15 сек):
+        data_conf.remote_timeout = 3.0 # секунд
+        
+        Чтобы вообще не было попыток получить актуальные данные можно сделать:
+        iers_conf.auto_download = False
+        
+        Даже без использования актуальных данных ошибка очень мала для наших нужд (<0.0001°, <0.001%)
+        Библиотека astropy хранит в себе данные начиная с 1973 года до времени релиза последней версии, 
+        поэтому для архивных данных ошибки расчета вообще быть не должно.
+        """
+        iers_conf.auto_max_age = None
+        data_conf.remote_timeout = 3.0 # секунд
+
+        # игнорирование сообщений
+        warnings.filterwarnings(
+            "ignore",
+            message=".*failed to download.*",
+            category=IERSWarning
+        )
+        warnings.filterwarnings(
+            "ignore",
+            message=".*unable to download valid IERS file.*",
+            category=IERSWarning
+        )
         metadata.solar_p = sunpy.coordinates.sun.P(observing_time)
         metadata.solar_b = sunpy.coordinates.sun.B0(observing_time)
 

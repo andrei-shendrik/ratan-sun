@@ -143,8 +143,9 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         #         header[f'NAXIS{i + 1}'] = dim
 
         header["TELESCOP"] = metadata.telescope
-        header["ORIGIN"] = DataReceiver.FAST_ACQUISITION_1_3GHZ.value
+        header["RECEIVER"] = DataReceiver.FAST_ACQUISITION_1_3GHZ.value
         header["BAND"] = "1-3 GHz"
+        header["OBS-MODE"] = (metadata.observation_mode.value, f"Observation Mode")
         header['DATE-OBS'] = metadata.datetime_culmination_feed_horn_local.strftime('%Y-%m-%d')
         header["TIME-OBS"] = metadata.datetime_culmination_feed_horn_local.strftime('%H:%M:%S')
 
@@ -152,11 +153,10 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         header['CULM_EFR'] = (culm_efr_utc.isoformat(), f"Culmination by EFRAT, UTC")
         culm_feed_horn_utc = metadata.datetime_culmination_feed_horn_utc
         header['CULM_FEE'] = (culm_feed_horn_utc.isoformat(), f"Culmination FeedHorn Offset, UTC")
-
         header['T_START'] = (metadata.datetime_reg_start_utc.isoformat(), f"Observation Start Time, UTC")
         header['T_STOP'] = (metadata.datetime_reg_stop_utc.isoformat(), f"Observation Stop Time, UTC")
 
-        header['OBJECT'] = metadata.observation_object
+        header['OBJECT'] = metadata.object_of_observation
         header['AZIMUTH'] = metadata.azimuth
         if metadata.altitude is not None:
             header['ALTITUDE'] = (metadata.altitude.value, f"Unit: {metadata.altitude.unit}")

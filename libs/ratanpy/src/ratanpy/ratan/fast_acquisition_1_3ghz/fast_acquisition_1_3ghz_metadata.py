@@ -1,3 +1,4 @@
+from ratanpy.ratan.observation_mode import ObservationMode
 from ratanpy.ratan.ratan_observation_metadata import RatanObservationMetadata
 
 
@@ -90,6 +91,8 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         # channel mapping
         # POL_CH0 = "LHCP"
         # POL_CH1 = "RHCP"
+
+        self._observation_mode = None
 
         self._datetime_reg_start_utc = None # startobs
         self._datetime_reg_start_local = None
@@ -193,6 +196,14 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @desc_file.setter
     def desc_file(self, value):
         self._desc_file = value
+
+    @property
+    def observation_mode(self) -> ObservationMode:
+        return self._observation_mode
+
+    @observation_mode.setter
+    def observation_mode(self, value: ObservationMode):
+        self._observation_mode = value
 
     @property
     def datetime_reg_start_utc(self):

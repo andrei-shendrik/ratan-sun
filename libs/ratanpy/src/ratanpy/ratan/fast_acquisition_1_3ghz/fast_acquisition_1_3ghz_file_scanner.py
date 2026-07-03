@@ -34,33 +34,56 @@ class FastAcquisition1To3GHzFileScanner:
              target_month: Optional[int] = None,
              target_day: Optional[int] = None) -> Generator[Path, None, None]:
 
+        logger.debug(f"Base dir: {base_dir} (Exists: {base_dir.exists()})")
+        logger.debug(f"Args: start={start_dt}, end={end_dt}, Y={target_year}, M={target_month}, D={target_day}")
+
         # формирование директорий для поиска
-        target_dirs = []
+        date_folders = []
+
         if target_year and not target_month:
-            target_dirs.append(base_dir / str(target_year))
+            date_folders.append(str(target_year))
         elif target_year and target_month:
-            target_dirs.append(base_dir / str(target_year) / f"{target_month:02d}")
-        elif target_year and target_month and target_day:
-            target_dirs.append(base_dir / str(target_year) / f"{target_month:02d}")
+            date_folders.append(f"{target_year}/{target_month:02d}")
         elif start_dt and end_dt:
             curr_y, curr_m = start_dt.year, start_dt.month
             end_y, end_m = end_dt.year, end_dt.month
 
             while (curr_y < end_y) or (curr_y == end_y and curr_m <= end_m):
-                target_dirs.append(base_dir / str(curr_y) / f"{curr_m:02d}")
+                date_folders.append(f"{curr_y}/{curr_m:02d}")
                 curr_m += 1
                 if curr_m > 12:
                     curr_m, curr_y = 1, curr_y + 1
-        else:
+
+        logger.debug(f"Generated date folders: {date_folders}")
+
+        target_dirs = []
+
+        if not date_folders:
             target_dirs.append(base_dir)
+        else:
+            for suffix in date_folders:
+                pattern = f"**/{suffix}" # ** на любой глубине
+                logger.debug(f"Searching with glob pattern: {pattern}")
+                for matched_dir in base_dir.glob(pattern):
+                    if matched_dir.is_dir():
+                        target_dirs.append(matched_dir)
+                        logger.debug(f"Found matching directory: {matched_dir}")
+
+        if not target_dirs:
+            logger.debug("No directories matched the pattern")
+            return
 
         # сканирование
-        for target_dir in target_dirs:
-            if not target_dir.exists():
-                logger.debug(f"Directory not found, skipping: {target_dir}")
-                continue
+        _year = int(target_year) if target_year is not None else None
+        _month = int(target_month) if target_month is not None else None
+        _day = int(target_day) if target_day is not None else None
 
+        _start = start_dt.replace(tzinfo=None) if start_dt and start_dt.tzinfo else start_dt
+        _end = end_dt.replace(tzinfo=None) if end_dt and end_dt.tzinfo else end_dt
+
+        for target_dir in target_dirs:
             for file_path in target_dir.rglob("*"):
+
                 if not file_path.is_file():
                     continue
 
@@ -73,11 +96,14 @@ class FastAcquisition1To3GHzFileScanner:
                     continue
 
                 # фильтрация по параметрам времени
-                if target_year and file_dateobs.year != target_year: continue
-                if target_month and file_dateobs.month != target_month: continue
-                if target_day and file_dateobs.day != target_day: continue
+                if _year and file_dateobs.year != _year: continue
+                if _month and file_dateobs.month != _month: continue
+                if _day and file_dateobs.day != _day: continue
 
-                if start_dt and file_dateobs < start_dt: continue
-                if end_dt and file_dateobs > end_dt: continue
+                if _start or _end:
+                    compare_dt = file_dateobs.replace(tzinfo=None) if file_dateobs.tzinfo else file_dateobs
+
+                    if _start and compare_dt < _start: continue
+                    if _end and compare_dt > _end: continue
 
                 yield file_path

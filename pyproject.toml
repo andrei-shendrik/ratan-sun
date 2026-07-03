@@ -1,12 +1,13 @@
 [tool.uv.workspace]
 members = [
-    "apps/django-api",
+    "apps/backend",
     "apps/bin2fits-fast-acquisition-1-3ghz-nodb",
-    "apps/data-worker",
+    "apps/obs-processor",
     "libs/ratanpy"
 ]
 
 [tool.uv]
 dev-dependencies = [
-    "deptry"
+    "deptry",
+    "watchfiles"
 ]

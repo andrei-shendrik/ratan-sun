@@ -42,7 +42,7 @@ class ParallelWorker:
         self._wrapper = FastAcquisition1To3GHzProcessingWrapper(director)
 
     def _wait_for_ram(self, filename: str, logger: logging.Logger):
-        """ Ожидание RAM перенесено внутрь воркера (как было в твоем старом коде) """
+        """ Ожидание RAM """
         min_ram_gb = self._settings.resources.min_free_ram_gb
         while True:
             available_gb = psutil.virtual_memory().available / (1024 ** 3)

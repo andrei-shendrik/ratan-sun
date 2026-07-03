@@ -58,19 +58,19 @@ class BatchProcessor:
                         return
                     try:
                         idx, f = next(file_iterator)
-                        # Передаем задачу в дочерний процесс
-                        new_future = executor.submit( # Shadows name 'future' from outer scope
+                        # передача задачи в дочерний процесс
+                        new_future = executor.submit(
                             execute_worker_task, f, fits_dir, overwrite, idx, total, self._settings
                         )
                         future_to_file[new_future] = f
                     except StopIteration:
                         pass
 
-                # Первичное заполнение очереди (2x от числа воркеров, чтобы пул не простаивал)
+                # первичное заполнение очереди (2x от числа воркеров, чтобы пул не простаивал)
                 for _ in range(workers * 2):
                     submit_next()
 
-                # Сбор результатов по мере готовности
+                # сбор результатов по мере готовности
                 while future_to_file:
                     done, _ = concurrent.futures.wait(
                         future_to_file.keys(),
@@ -82,21 +82,20 @@ class BatchProcessor:
                         try:
                             res: ProcessingResult = future.result()
 
-                            # Вывод изолированных логов из воркера в главный поток
+                            # вывод изолированных логов из воркера в главный поток
                             for record in res.log_records:
                                 logging.getLogger().handle(record)
 
-                            # Обновляем статистику отчета
-                            report.update(res) # Unresolved attribute reference 'update' for class 'TaskReport'
+                            # обновление статистики отчета
+                            report.update(res)
 
                         except Exception as e:
                             self._logger.critical(f"Process crashed for {original_file.name}: {e}")
                             report.failed += 1
 
-                        # Задача завершилась, закидываем новую
+                        # задача завершилась, закидывается следующая
                         submit_next()
 
-        # По завершению контекстного менеджера, profiler сам посчитает время!
         report.total_time_sec = batch_profiler.elapsed_seconds
         report.formatted_time = batch_profiler.formatted_time
 

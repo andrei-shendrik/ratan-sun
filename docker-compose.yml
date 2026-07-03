@@ -1,95 +1,163 @@
 # Prod
 services:
-  postgres-db:
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-postgres:${PROJECT_VERSION:-latest}
+  db:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-db:${PROJECT_VERSION:-latest}
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      APP_DB_USER: ${APP_DB_USER}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
-      APP_DB_NAME: ${APP_DB_NAME}
+    env_file:
+      - .env
     # портов нет
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${APP_DB_USER} -d ${APP_DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  redis:
+  broker:
     image: redis:8.8-alpine
     restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  bin2fits-fast-1-3-nodb: #_cli
+  cache:
+    image: redis:8.8-alpine
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # cli
+  bin2fits-fast-1-3-nodb:
     image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-bin2fits-fast-1-3ghz-nodb:${PROJECT_VERSION:-latest}
     restart: "no" # контейнер должен исчезнуть после выполнения задачи
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     env_file:
       - .env
     environment:
       - TZ=${TZ:-Europe/Moscow}
-      - DB_HOST=postgres-db
-      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
-      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR=/main/logs/ratan-sun/bin2fits-fast-1-3-nodb
-    depends_on:
-      - postgres-db
+      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
+      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR=/app/logs/ratan-sun/bin2fits-fast-1-3-nodb
     volumes:
-      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw/sun
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits/sun
-      - ${BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR}:/main/logs/ratan-sun/bin2fits-fast-1-3-nodb
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${BIN2FITS_FAST_ACQ_1_3GHZ_NODB_LOG_DIR}:/app/logs/ratan-sun/bin2fits-fast-1-3-nodb
     # нет command, докер использует дефолтный из Dockerfile (CMD ["--help"])
     # профиль "cli", чтобы этот контейнер игнорировался при "docker compose up -d"
     profiles:
       - cli
 
-  # website services
-  django-api:
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+  migrator:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-backend:${PROJECT_VERSION:-latest}
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    env_file: [ ".env" ]
+    environment:
+      - DB_HOST=db
+      - TZ=${TZ:-Europe/Moscow}
+      - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
+    command: [ "python", "manage.py", "migrate", "--noinput" ]
+    restart: "no"
+
+  # wsgi gunicorn
+  backend:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-backend:${PROJECT_VERSION:-latest}
     restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     env_file:
       - .env
     environment:
-      - DB_HOST=postgres-db
-      - REDIS_HOST=redis
+      - DB_HOST=db
+      - TZ=${TZ:-Europe/Moscow}
+      - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
+      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
+      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     depends_on:
-      - postgres-db
-      - redis
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     volumes:
       # прокидывание путей
-      - ${DJANGO_API_LOG_DIR}:/app/logs/ratan-sun/django
-      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json
+      - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     # запуск через Gunicorn на порту 8000
-    # command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
-    command: >
-      sh -c "uv run python src/manage.py migrate &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
+#    command: >
+#      sh -c "uv run python src/manage.py migrate &&
+#             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
       
   # celery: исполнитель
   data-worker:
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-backend:${PROJECT_VERSION:-latest}
     restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     env_file: [ ".env" ]
     environment:
-      - DB_HOST=postgres-db
-      - REDIS_HOST=redis
+      - DB_HOST=db
+      - TZ=${TZ:-Europe/Moscow}
+      - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
+      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
+      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     depends_on:
-      - django-api
-      - redis
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
     volumes:
-      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/app/data/fits:ro # чтение fits
-      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json     # запись json
+      - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     # переопределение команды запуска celery
-    command: [ "uv", "run", "celery", "-A", "config", "worker", "-l", "info" ] #  "-B" Beat
+    # command: ["uv", "run", "celery", "-A", "config", "worker", "-l", "info", "-c", "4"] # для однопоточного убрать ', "-c", "4"'
+    command: ["celery", "-A", "config", "worker", "-l", "info", "-c", "4"]
 
-  # celery: планировщик (генерация задач и передача исполнителю)
-  celery-beat:
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-django-api:${PROJECT_VERSION:-latest}
+  # celery: beat планировщик (генерация задач и передача исполнителю)
+  task-scheduler:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-backend:${PROJECT_VERSION:-latest}
     restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     env_file: [ ".env" ]
     environment:
-      - DB_HOST=postgres-db
-      - REDIS_HOST=redis
+      - DB_HOST=db
+      - TZ=${TZ:-Europe/Moscow}
+      - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
+      - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
+      - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     depends_on:
-      - django-api
-      - redis
-    command: [ "uv", "run", "celery", "-A", "config", "beat", "-l", "info" ]
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    volumes:
+      - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
+      - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
+      - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
+      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+    # command: [ "uv", "run", "celery", "-A", "config", "beat", "-l", "info" ]
+    command: ["celery", "-A", "config", "beat", "-l", "info"]
 
 #
 #  nginx-web:
@@ -102,13 +170,15 @@ services:
 #      - "80:80"
 #      - "443:443"
 #    depends_on:
-#      - django-api
+#      - backend
 #    volumes:
 #      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/app/data/json/ratan-600/fast-acquisition-1-3ghz:ro # режим Read Only (ro)
 
-  react-web:
-    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-react-web:${PROJECT_VERSION:-latest}
+  frontend:
+    image: ghcr.io/${REPOSITORY_OWNER:-andrei-shendrik}/ratan-sun-frontend:${PROJECT_VERSION:-latest}
     restart: always
+    depends_on:
+      - backend
     ports:
       - "127.0.0.1:8080:80" # привязка 8080 только к localhost, чтобы снаружи никто не мог обойти Apache
 

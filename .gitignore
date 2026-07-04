@@ -32,6 +32,9 @@ env/
 # celery
 celerybeat-schedule*
 
+# django
+staticfiles/
+
 # user specific
 docker-compose.override.yml
 

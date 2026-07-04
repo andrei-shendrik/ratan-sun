@@ -19,7 +19,11 @@ from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# ./ backend/ src/
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ./ backend/
+BACKEND_DIR = BASE_DIR.parent
 
 # added .env path: /ratan-sun /apps /backend
 ROOT_DIR = BASE_DIR.parent.parent.parent
@@ -41,7 +45,8 @@ DEBUG = False # True
 # DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'solar.sao.ru', 'www.solar.sao.ru']
+allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
 
 # Application definition
 
@@ -151,10 +156,11 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# чтобы не путать с static фронтенда
+STATIC_URL = 'django-static/' # 'static/'
 
 # папка, куда команда collectstatic соберет все файлы
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BACKEND_DIR / 'staticfiles'
 
 # кэширование whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

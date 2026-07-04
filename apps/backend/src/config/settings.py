@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,13 +31,17 @@ load_dotenv(ENV_PATH)
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mg5cw!1)au7kdaivpfe*4y_lc$xz6xdl2&k44jz=o+x3u&48e$'
+# SECRET_KEY = 'django-insecure-mg5cw!1)au7kdaivpfe*4y_lc$xz6xdl2&k44jz=o+x3u&48e$'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured("CRITICAL ERROR: DJANGO_SECRET_KEY environment variable is missing")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False # True
+# DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'solar.sao.ru', 'www.solar.sao.ru']
 
 # Application definition
 

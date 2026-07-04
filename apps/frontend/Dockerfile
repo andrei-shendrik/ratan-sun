@@ -1,19 +1,19 @@
 # сборка
 FROM node:20-alpine AS builder
 WORKDIR /app
-# копируем package.json и устанавливаем зависимости
+# копирование package.json и установка зависимостей
 COPY package*.json ./
 RUN npm install
-# копируем весь исходный код и собираем
+# копирование исходного кода и сборка
 COPY . .
 # Vite соберет оптимизированную статику в папку /app/dist
 RUN npm run build
 
 # nginx
 FROM nginx:alpine
-# копируем конфиг Nginx для SPA
+# копирование конфига nginx для SPA
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-# копируем готовые файлы React из первой стадии
+# копирование готовых файлов react из первой стадии
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80

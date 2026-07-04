@@ -99,6 +99,8 @@ services:
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
       - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
     # запуск через Gunicorn на порту 8000
+    ports:
+      - "127.0.0.1:8000:8000"
     command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
 #    command: >
 #      sh -c "uv run python src/manage.py migrate &&

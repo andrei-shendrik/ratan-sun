@@ -6,7 +6,7 @@ def generate_secure_password(length: int = 24) -> str:
     """
         генерация криптографически стойкого пароля
     """
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&-_=+"
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&-_=+" # "!@#$%^&*()-_=+"
 
     while True:
         password = ''.join(secrets.choice(alphabet) for _ in range(length))
@@ -17,4 +17,4 @@ def generate_secure_password(length: int = 24) -> str:
             return password
 
 if __name__ == "__main__":
-    print(f"Password: {generate_secure_password(16)}")
+    print(f"Password: {generate_secure_password(16)}") # 64

@@ -65,6 +65,9 @@ USER appuser
 # `gunicorn config.wsgi`, `python manage.py`, `celery -A config`
 WORKDIR /app/apps/backend/src
 
+# сбор статики
+RUN SECRET_KEY='dummy_key_for_build' python manage.py collectstatic --noinput
+
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
 
 #FROM python:3.14-slim

@@ -20,7 +20,8 @@ dependencies = [
     "ratanpy",
     "psutil",
     "python-dateutil",
-    "pydantic"
+    "pydantic",
+    "whitenoise"
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -33,4 +34,4 @@ ratanpy = { workspace = true }
 known_first_party = ["observations"]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["django-cors-headers", "psycopg2-binary", "redis"]
+DEP002 = ["django-cors-headers", "psycopg2-binary", "redis", "gunicorn", 'whitenoise']

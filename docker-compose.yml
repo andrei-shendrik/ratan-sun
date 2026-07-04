@@ -103,6 +103,10 @@ services:
       - "127.0.0.1:8001:8000"
     command: [ "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
 #    command: >
+#      sh -c "uv run python src/manage.py collectstatic --noinput &&
+#             uv run python src/manage.py migrate &&
+#             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+#    command: >
 #      sh -c "uv run python src/manage.py migrate &&
 #             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
       

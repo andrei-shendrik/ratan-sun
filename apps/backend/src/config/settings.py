@@ -41,8 +41,8 @@ if not SECRET_KEY:
     raise ImproperlyConfigured("CRITICAL ERROR: DJANGO_SECRET_KEY environment variable is missing")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False # True
-# DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
+# DEBUG = False # True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
 # ALLOWED_HOSTS = []
 allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost')
@@ -199,8 +199,7 @@ CACHES = {
 # логирование
 BACKEND_LOG_DIR = Path(os.environ.get('BACKEND_LOG_DIR', BASE_DIR / 'logs'))
 BACKEND_LOG_DIR.mkdir(parents=True, exist_ok=True)
-BACKEND_LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL')
-# BACKEND_LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL', 'INFO')
+BACKEND_LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL') # ('BACKEND_LOG_LEVEL', 'INFO')
 
 # celery будет использовать настройки логов django
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False

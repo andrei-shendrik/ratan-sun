@@ -14,3 +14,7 @@ backend, broker, cache
 
 ### Refactored
 Changed structure of project
+
+## [2.1.9] - 2026-07-05
+### Fixed
+django administration

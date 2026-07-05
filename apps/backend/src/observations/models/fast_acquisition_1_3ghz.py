@@ -62,8 +62,8 @@ class ProcessingJobBin2FitsFastAcquisition1To3GHz(AbstractProcessingJob):
 
     class Meta:
         db_table = 'processing_job_bin2fits_fast_acquisition_1_3ghz'
-        verbose_name = 'Processing Job Bin2Fits FastAcquisition 1-3GHz'
-        verbose_name_plural = 'Processing Jobs Bin2Fits FastAcquisition 1-3GHz'
+        verbose_name = 'Processing Job Bin2Fits FastAcquisition 1-3 GHz'
+        verbose_name_plural = 'Processing Jobs Bin2Fits FastAcquisition 1-3 GHz'
         ordering = ['-updated_at']
 
     def __str__(self):

@@ -18,3 +18,7 @@ Changed structure of project
 ## [2.1.9] - 2026-07-05
 ### Fixed
 django administration
+
+## [2.1.12] - 2026-07-05
+### Chore
+DB tables display is configured for django administration

@@ -249,6 +249,7 @@ source = { editable = "apps/backend" }
 dependencies = [
     { name = "celery" },
     { name = "django" },
+    { name = "django-admin-rangefilter" },
     { name = "django-cors-headers" },
     { name = "djangorestframework" },
     { name = "gunicorn" },
@@ -266,6 +267,7 @@ dependencies = [
 requires-dist = [
     { name = "celery" },
     { name = "django" },
+    { name = "django-admin-rangefilter" },
     { name = "django-cors-headers" },
     { name = "djangorestframework" },
     { name = "gunicorn" },
@@ -579,6 +581,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/78/29/ac41e16097af67066d97a7d5775c5d8e7efc5d0284f6b0a159e07b9adb92/django-6.0.6.tar.gz", hash = "sha256:ad03916ba59523d781ae5c3f631960c23d69a9d9c43cecda52fc23b47e953713", size = 10905525, upload-time = "2026-06-03T13:02:46.503Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/50/23f9dc45483419a3cc2085b498b25adfbf10642b2941c73e6d2dfaffc9ab/django-6.0.6-py3-none-any.whl", hash = "sha256:25148b1194c47c2e685e5f5e9c5d59c78b075dfd282cb9618861ba6c1708f4d2", size = 8373354, upload-time = "2026-06-03T13:02:41.72Z" },
+]
+
+[[package]]
+name = "django-admin-rangefilter"
+version = "0.13.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/29/ca800141c33d2df90eb3306c86f5a8c89c11d2d0493e5c503217f57fb0a1/django_admin_rangefilter-0.13.5.tar.gz", hash = "sha256:3134e9e877f59ccad5949cd25cd2db9bf20d170fd8070be584875fdca96d3a14", size = 23712, upload-time = "2025-12-13T07:58:31.327Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/ad/577f872dcc0107d608085b626103990028655b797eedab884242b61f6ac0/django_admin_rangefilter-0.13.5-py2.py3-none-any.whl", hash = "sha256:7fdcd1ee9007e2b76a5bd35bc017e785bdc7b17a24b8a36aef4ce80741356c47", size = 48383, upload-time = "2025-12-13T07:58:30.028Z" },
 ]
 
 [[package]]

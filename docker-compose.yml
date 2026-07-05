@@ -17,6 +17,9 @@ services:
   broker:
     image: redis:8.8-alpine
     restart: always
+    # отключение RDB Snapshots (не сохранять очереди задач на диск)
+    # если задачи были в памяти, и сервер был отключен, то задачи исчезнут
+    command: redis-server --save "" --appendonly no
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -26,6 +29,8 @@ services:
   cache:
     image: redis:8.8-alpine
     restart: always
+    # не сохранять кэш на диск
+    command: redis-server --save "" --appendonly no
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s

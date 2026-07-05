@@ -22,3 +22,11 @@ django administration
 ## [2.1.12] - 2026-07-05
 ### Chore
 DB tables display is configured for django administration
+
+## [2.1.14] - 2026-07-05
+### Fixed
+django user privileges
+
+race condition: docker starts before storage mounts
+
+RDB Snapshots (cache, broker) are disabled

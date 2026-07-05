@@ -130,6 +130,8 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     volumes:
       - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
@@ -157,6 +159,8 @@ services:
         condition: service_healthy
       broker:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     volumes:
       - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro

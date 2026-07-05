@@ -50,7 +50,7 @@ class FastAcquisition1To3GHzRawToDB:
         """
         Пишет инфо при старте сервиса и при смене директорий.
 
-        Должен быть прописан cache в setting.py
+        Должен быть прописан cache в settings.py
         """
 
         relative_paths = []
@@ -150,6 +150,14 @@ class FastAcquisition1To3GHzRawToDB:
         return added_count
 
     def execute(self) -> int:
+        """
+        защита от пустого монтирования docker:
+        если базовая директория пуста, то прерывание работы
+        """
+        if not any(self._raw_base_path.iterdir()):
+            logger.critical(f"Base path {self._raw_base_path} is empty. Mount failure?")
+            return 0
+
         target_dirs = self._get_target_dirs()
         self._log_state_changes(target_dirs)
 

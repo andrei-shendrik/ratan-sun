@@ -21,7 +21,8 @@ dependencies = [
     "psutil",
     "python-dateutil",
     "pydantic",
-    "whitenoise"
+    "whitenoise",
+    "django-admin-rangefilter"
 ]
 
 [tool.hatch.build.targets.wheel]

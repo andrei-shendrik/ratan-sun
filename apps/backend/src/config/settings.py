@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'rangefilter',
     'observations',
     'users'
 ]
@@ -146,7 +147,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us' # AM PM Sunday first day of week
+LANGUAGE_CODE = 'en-gb'  # 24h time, Monday first
+# FIRST_DAY_OF_WEEK = 1 # Monday first
 
 USE_TZ = True # True = БД хранит в UTC, отображает в соответствии с TIME_ZONE
 

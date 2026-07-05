@@ -1,33 +1,31 @@
 import subprocess
 import sys
-import tomllib
-from pathlib import Path
 
 
-def run_cmd(command: str, capture_output: bool = False) -> str:
+def run_cmd(command: list[str] | str, capture_output: bool = False) -> str:
     """
     Если capture_output=True, возвращает текст вывода (без вывода на экран).
     Если capture_output=False, печатает процесс в консоль.
     """
-    result = subprocess.run(command, shell=True, capture_output=capture_output, text=True)
+    is_shell = isinstance(command, str)
+    cmd_str = command if is_shell else " ".join(command)
+    print(f"Executing: {cmd_str}")
+
+    result = subprocess.run(
+        command,
+        shell=is_shell,
+        capture_output=capture_output,
+        text=True
+    )
 
     if result.returncode != 0:
-        print(f"Error: '{command}' terminated with code {result.returncode}")
+        print(f"\nERROR: Command failed with code {result.returncode}")
         if capture_output:
-            print(f"Error: {result.stderr}")
+            print(f"Error output:\n{result.stderr}")
+        print("Please fix the issue manually in Git and try again.")
         sys.exit(1)
 
     return result.stdout.strip() if capture_output else ""
-
-def get_project_version() -> str:
-    toml_path = Path("pyproject.toml")
-    if not toml_path.exists():
-        print("Error: pyproject.toml not found")
-        sys.exit(1)
-
-    with open(toml_path, "rb") as f:
-        data = tomllib.load(f)
-        return data["project"]["version"]
 
 def get_git_tags() -> list[str]:
     """список тегов в репозитории"""
@@ -39,6 +37,11 @@ def get_latest_tag() -> str:
     output = run_cmd("git tag --sort=-v:refname", capture_output=True)
     tags = [tag.strip() for tag in output.split("\n") if tag.strip()]
     return tags[0] if tags else "No tags found"
+
+def has_uncommitted_changes() -> bool:
+    """есть ли измененные файлы в рабочей директории"""
+    output = run_cmd("git status --porcelain", capture_output=True)
+    return bool(output)
 
 def main():
     print("*** Release script ***")
@@ -62,36 +65,60 @@ def main():
         print(f"Error: tag {target_tag} already exists in repository")
         sys.exit(1)
 
-    commit_message = input(f"Enter commit message for release {target_tag}: ").strip()
+    run_cmd("git checkout develop")
+    run_cmd("git pull origin develop")
 
-    if not commit_message:
-        print("Error: commit message cannot be empty")
-        sys.exit(1)
+    needs_commit = has_uncommitted_changes()
+    commit_message = ""
 
-    confirm = input(
-        f"\nThe following actions will be performed:\n-Merge develop -> main\n- Commit: '{commit_message}\n- Tag: {target_tag}\n- Push -> GitHub\nContinue? (y/n): ")
+    if needs_commit:
+        print("\nUncommitted changes detected in develop")
+        commit_message = input(f"Enter commit message for develop: ").strip()
+
+        if not commit_message:
+            print("Error: commit message cannot be empty")
+            sys.exit(1)
+    else:
+        print("\nWorking tree is clean. No new commit needed in develop")
+
+    merge_msg = f"Merge develop into main for release {target_tag}"
+
+    print(f"\nThe following actions will be performed:")
+    if needs_commit:
+        print(f"  - Commit changes to develop: '{commit_message}'")
+    print(f"  - Merge develop -> main (--no-ff): '{merge_msg}'")
+    print(f"  - Tag main: {target_tag}")
+    print(f"  - Merge main -> develop")
+    print(f"  - Push -> GitHub")
+
+    confirm = input("\nContinue? (y/n): ").strip().lower()
     if confirm.lower() != 'y':
         print("Canceled")
         sys.exit(0)
 
-    run_cmd("git checkout develop")
-    run_cmd("git pull origin develop")
-    run_cmd("git add .")
-    run_cmd(f'git commit -m "{commit_message}"')
+    # commit develop
+    if needs_commit:
+        run_cmd("git add -A")
+        run_cmd(["git", "commit", "-m", commit_message])
     run_cmd("git push origin develop")
 
+    # release main
     run_cmd("git checkout main")
     run_cmd("git pull origin main")
-    run_cmd(f'git merge --no-ff develop -m "Merge develop into main for release {target_tag}"')
+    run_cmd(["git", "merge", "--no-ff", "develop", "-m", merge_msg])
     run_cmd("git push origin main")
 
-    run_cmd(f'git tag -a {target_tag} -m "Release version {version}"')
+    # tags
+    tag_msg = f"Release version {version}"
+    run_cmd(["git", "tag", "-a", target_tag, "-m", tag_msg])
     run_cmd("git push origin --tags")
 
+    # sync
     run_cmd("git checkout develop")
+    run_cmd("git merge main")
+    run_cmd("git push origin develop")
 
     print(f"\nRelease {target_tag} successfully completed and pushed to repository")
-
 
 if __name__ == "__main__":
     main()

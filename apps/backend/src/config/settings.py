@@ -163,6 +163,12 @@ TIME_ZONE = 'UTC' # 'Europe/Moscow'
 
 USE_I18N = True
 
+# изменение форматов времени для английской локали (en-us, en-gb)
+# Django Admin, Django Templates, Django Forms
+FORMAT_MODULE_PATH = [
+    'config.formats',
+]
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 

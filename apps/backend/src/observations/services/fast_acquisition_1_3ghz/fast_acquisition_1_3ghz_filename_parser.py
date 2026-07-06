@@ -27,7 +27,9 @@ class FastAcquisition1To3GHzFilenameParser:
         dt_str, object_of_observation, az_str = match.groups()
 
         dt_naive = datetime.strptime(dt_str, "%Y-%m-%d_%H%M%S")
-        dt_utc = dt_naive.replace(tzinfo=timezone.utc)
+        dt_local = dt_naive.replace(tzinfo=cls.LOCAL_TZ)
+        dt_utc = dt_local.astimezone(timezone.utc)
+
         # dt_local = dt_utc.astimezone(cls.LOCAL_TZ)
         # logger.debug(f"Object: '{object_of_observation}'")
 

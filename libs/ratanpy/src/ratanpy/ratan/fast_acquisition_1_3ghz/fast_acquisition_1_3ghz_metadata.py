@@ -1,4 +1,10 @@
+from datetime import datetime
+
+from astropy.coordinates import Angle
+
+from ratanpy.ratan.data_values import DataValues
 from ratanpy.ratan.observation_mode import ObservationMode
+from ratanpy.ratan.polarization_type import PolarizationType
 from ratanpy.ratan.ratan_observation_metadata import RatanObservationMetadata
 
 
@@ -82,33 +88,25 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._data_file_extension = None
 
         self._is_bad = None
-        # "LHCP / RHCP"
-        # "Stokes I / Stokes V"
-
-        # Flag_IV 0 1
-        # "LR / IV"
-
-        # channel mapping
-        # POL_CH0 = "LHCP"
-        # POL_CH1 = "RHCP"
 
         self._observation_mode = None
 
-        self._datetime_reg_start_utc = None # startobs
-        self._datetime_reg_start_local = None
+        self._polarization_channel0: PolarizationType | None = None
+        self._polarization_channel1: PolarizationType | None = None
 
-        self._datetime_culmination_efrat_local = None
-        self._datetime_culmination_efrat_utc = None
+        self._datetime_reg_start_utc: datetime | None = None # startobs
+        self._datetime_reg_start_local: datetime | None = None
 
-        self._datetime_culmination_feed_horn_local = None
-        self._datetime_culmination_feed_horn_utc = None
+        self._datetime_culmination_efrat_local: datetime | None = None
+        self._datetime_culmination_efrat_utc: datetime | None = None
 
-        self._datetime_reg_stop_utc = None # stopobs
-        self._datetime_reg_stop_local = None
+        self._datetime_culmination_feed_horn_local: datetime | None = None
+        self._datetime_culmination_feed_horn_utc: datetime | None = None
+
+        self._datetime_reg_stop_utc: datetime | None = None # stopobs
+        self._datetime_reg_stop_local: datetime | None = None
 
         self._record_duration_seconds = None
-
-        self._channel_mapping = None
 
         self._frequencies = None  # массив частот
         self._polarizations = None
@@ -116,13 +114,20 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._telescope = None
         self._object_of_observation = None
         self._azimuth = None
-        self._altitude = None
-        self._declination = None
-        self._right_ascension = None
+        self._altitude: Angle | None = None
+        self._declination: Angle | None = None
+        self._right_ascension: Angle | None = None
 
-        self._solar_radius = None
-        self._solar_position_angle = None # solar_q
-        self._solar_b_angle = None
+        self._solar_r: Angle | None = None
+        self._solar_p: Angle | None = None
+        """
+        scan_angle угол прохождения Солнца диаграммой Ратан
+        
+        итоговый угол для сопоставления с другими изображениями:
+         = solar_p ± scan_angle
+        """
+        self._scan_angle: Angle | None = None # solar_q
+        self._solar_b: Angle | None = None
 
         self._coordinate_axes = None
         self._num_samples = None  # количество временных отсчетов
@@ -173,6 +178,14 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._unit = None
         self._quiet_sun_point_arcsec = None
 
+        self._freq_min_mhz = None
+        self._freq_max_mhz = None
+
+        self._additional_data_cleaning = None
+
+        self._feedhorn_offset = None
+        self._feedhorn_offset_time = None
+
     @property
     def obs_file(self):
         return self._bin_file
@@ -206,67 +219,67 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._observation_mode = value
 
     @property
-    def datetime_reg_start_utc(self):
+    def datetime_reg_start_utc(self) -> datetime | None:
         return self._datetime_reg_start_utc
 
     @datetime_reg_start_utc.setter
-    def datetime_reg_start_utc(self, value):
+    def datetime_reg_start_utc(self, value: datetime | None) -> None:
         self._datetime_reg_start_utc = value
 
     @property
-    def datetime_reg_start_local(self):
+    def datetime_reg_start_local(self) -> datetime | None:
         return self._datetime_reg_start_local
 
     @datetime_reg_start_local.setter
-    def datetime_reg_start_local(self, value):
+    def datetime_reg_start_local(self, value: datetime | None) -> None:
         self._datetime_reg_start_local = value
 
     @property
-    def datetime_culmination_efrat_local(self):
+    def datetime_culmination_efrat_local(self) -> datetime | None:
         return self._datetime_culmination_efrat_local
 
     @datetime_culmination_efrat_local.setter
-    def datetime_culmination_efrat_local(self, value):
+    def datetime_culmination_efrat_local(self, value: datetime | None) -> None:
         self._datetime_culmination_efrat_local = value
 
     @property
-    def datetime_culmination_efrat_utc(self):
+    def datetime_culmination_efrat_utc(self) -> datetime | None:
         return self._datetime_culmination_efrat_utc
 
     @datetime_culmination_efrat_utc.setter
-    def datetime_culmination_efrat_utc(self, value):
+    def datetime_culmination_efrat_utc(self, value: datetime | None) -> None:
         self._datetime_culmination_efrat_utc = value
 
     @property
-    def datetime_culmination_feed_horn_local(self):
+    def datetime_culmination_feed_horn_local(self) -> datetime | None:
         return self._datetime_culmination_feed_horn_local
 
     @datetime_culmination_feed_horn_local.setter
-    def datetime_culmination_feed_horn_local(self, value):
+    def datetime_culmination_feed_horn_local(self, value: datetime | None) -> None:
         self._datetime_culmination_feed_horn_local = value
 
     @property
-    def datetime_culmination_feed_horn_utc(self):
+    def datetime_culmination_feed_horn_utc(self) -> datetime | None:
         return self._datetime_culmination_feed_horn_utc
 
     @datetime_culmination_feed_horn_utc.setter
-    def datetime_culmination_feed_horn_utc(self, value):
+    def datetime_culmination_feed_horn_utc(self, value: datetime | None) -> None:
         self._datetime_culmination_feed_horn_utc = value
 
     @property
-    def datetime_reg_stop_utc(self):
+    def datetime_reg_stop_utc(self) -> datetime | None:
         return self._datetime_reg_stop_utc
 
     @datetime_reg_stop_utc.setter
-    def datetime_reg_stop_utc(self, value):
+    def datetime_reg_stop_utc(self, value: datetime | None) -> None:
         self._datetime_reg_stop_utc = value
 
     @property
-    def datetime_reg_stop_local(self):
+    def datetime_reg_stop_local(self) -> datetime | None:
         return self._datetime_reg_stop_local
 
     @datetime_reg_stop_local.setter
-    def datetime_reg_stop_local(self, value):
+    def datetime_reg_stop_local(self, value: datetime | None) -> None:
         self._datetime_reg_stop_local = value
 
     @property
@@ -292,14 +305,6 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @num_samples.setter
     def num_samples(self, value):
         self._num_samples = value
-
-    @property
-    def flag_iv(self):
-        return self._flag_iv
-
-    @flag_iv.setter
-    def flag_iv(self, value):
-        self._flag_iv = value
 
     @property
     def time_reduction_factor(self):
@@ -334,52 +339,60 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._azimuth = value
 
     @property
-    def solar_p(self):
+    def solar_p(self) -> Angle | None:
         return self._solar_p
 
     @solar_p.setter
-    def solar_p(self, value):
+    def solar_p(self, value: Angle | None) -> None:
         self._solar_p = value
 
     @property
-    def solar_b(self):
+    def solar_b(self) -> Angle | None:
         return self._solar_b
 
     @solar_b.setter
-    def solar_b(self, value):
+    def solar_b(self, value: Angle | None) -> None:
         self._solar_b = value
 
     @property
-    def solar_r(self):
+    def solar_r(self) -> Angle | None:
         return self._solar_r
 
     @solar_r.setter
-    def solar_r(self, value):
+    def solar_r(self, value: Angle | None) -> None:
         self._solar_r = value
 
     @property
-    def altitude(self):
+    def altitude(self) -> Angle | None:
         return self._altitude
 
     @altitude.setter
-    def altitude(self, value):
+    def altitude(self, value: Angle | None) -> None:
         self._altitude = value
 
     @property
-    def right_ascension(self):
+    def right_ascension(self) -> Angle | None:
         return self._right_ascension
 
     @right_ascension.setter
-    def right_ascension(self, value):
+    def right_ascension(self, value: Angle | None) -> None:
         self._right_ascension = value
 
     @property
-    def declination(self):
+    def declination(self) -> Angle | None:
         return self._declination
 
     @declination.setter
-    def declination(self, value):
+    def declination(self, value: Angle | None) -> None:
         self._declination = value
+
+    @property
+    def scan_angle(self) -> Angle | None:
+        return self._scan_angle
+
+    @scan_angle.setter
+    def scan_angle(self, value: Angle | None) -> None:
+        self._scan_angle = value
 
     @property
     def data_receiver(self):
@@ -397,13 +410,13 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     def data_file_extension(self, value):
         self._data_file_extension = value
 
-    @property
-    def cdelt1(self):
-        return self._cdelt1
-
-    @cdelt1.setter
-    def cdelt1(self, value):
-        self._cdelt1 = value
+    # @property
+    # def cdelt1(self):
+    #     return self._cdelt1
+    #
+    # @cdelt1.setter
+    # def cdelt1(self, value):
+    #     self._cdelt1 = value
 
     @property
     def auto_polarization_switch(self):
@@ -484,30 +497,6 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @record_duration_rlc.setter
     def record_duration_rlc(self, value):
         self._record_duration_rlc = value
-
-    @property
-    def solar_b_angle(self):
-        return self._solar_b_angle
-
-    @solar_b_angle.setter
-    def solar_b_angle(self, value):
-        self._solar_b_angle = value
-
-    @property
-    def solar_position_angle(self):
-        return self._solar_position_angle
-
-    @solar_position_angle.setter
-    def solar_position_angle(self, value):
-        self._solar_position_angle = value
-
-    @property
-    def solar_radius(self):
-        return self._solar_radius
-
-    @solar_radius.setter
-    def solar_radius(self, value):
-        self._solar_radius = value
 
     @property
     def start_pulse_edge_sample(self):
@@ -700,3 +689,59 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @half_width_kurtosis_interval.setter
     def half_width_kurtosis_interval(self, value):
         self._half_width_kurtosis_interval = value
+
+    @property
+    def polarization_channel0(self):
+        return self._polarization_channel0
+
+    @polarization_channel0.setter
+    def polarization_channel0(self, value):
+        self._polarization_channel0 = value
+
+    @property
+    def polarization_channel1(self):
+        return self._polarization_channel1
+
+    @polarization_channel1.setter
+    def polarization_channel1(self, value):
+        self._polarization_channel1 = value
+
+    @property
+    def data_values(self) -> DataValues:
+        if self._polarization_channel0 == PolarizationType.LHCP and self._polarization_channel1 == PolarizationType.RHCP:
+            return DataValues.LR
+        elif self._polarization_channel0 == PolarizationType.STOKES_I and self._polarization_channel1 == PolarizationType.STOKES_V:
+            return DataValues.IV
+        raise ValueError(f"Unknown polarizations channels: '{self._polarization_channel0}', '{self._polarization_channel1}'")
+
+    @property
+    def freq_min_mhz(self):
+        return self._freq_min_mhz
+
+    @freq_min_mhz.setter
+    def freq_min_mhz(self, value):
+        self._freq_min_mhz = value
+
+    @property
+    def freq_max_mhz(self):
+        return self._freq_max_mhz
+
+    @freq_max_mhz.setter
+    def freq_max_mhz(self, value):
+        self._freq_max_mhz = value
+
+    @property
+    def quiet_sun_point_arcsec(self):
+        return self._quiet_sun_point_arcsec
+
+    @quiet_sun_point_arcsec.setter
+    def quiet_sun_point_arcsec(self, value):
+        self._quiet_sun_point_arcsec = value
+
+    @property
+    def additional_data_cleaning(self):
+        return self._additional_data_cleaning
+
+    @additional_data_cleaning.setter
+    def additional_data_cleaning(self, value):
+        self._additional_data_cleaning = value

@@ -9,7 +9,7 @@ from ratanpy.ratan.polarization_type import PolarizationType
 
 def draw_charts():
     fast_acquisition_bin_file = Path(
-        r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2024\08\2024-08-01_121957_sun+00.bin.gz")
+        r"D:\data\astro\obs\ratan-600\fast-acquisition-1-3ghz\raw\sun\2024\08\2024-08-01_121957_sun+00.bin.gz")
 
     director = FastAcquisition1To3GHzProcessingDirector()
     observation = director.run_standard_processing(fast_acquisition_bin_file)

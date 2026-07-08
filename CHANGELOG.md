@@ -2,8 +2,6 @@
 ### Added
 bin2fits_fast_1_3 multiprocessing
 
-### Fixed
-
 ## [2.0.0] - 2026-05-22
 ### Refactored
 Changed structure of project
@@ -30,3 +28,11 @@ django user privileges
 race condition: docker starts before storage mounts
 
 RDB Snapshots (cache, broker) are disabled
+
+## [2.1.16] - 2026-07-06
+### Fixed
+DB: raw_obs fast-1-3ghz datetime_obs_utc time
+
+django time formats for en locale
+
+release script

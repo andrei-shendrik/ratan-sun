@@ -129,3 +129,49 @@ class AbstractProcessingJob(models.Model):
 
     class Meta:
         abstract = True
+
+class AbstractVisualization(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid7, editable=False)
+
+    json_relative_path = models.CharField(
+        max_length=500,
+        help_text="Relative path from *WEB_DATA root"
+    )
+    json_filename = models.CharField(max_length=255, unique=True)
+
+    thumbnail_relative_path = models.CharField(
+        max_length=500,
+        help_text="Relative path from *WEB_DATA root"
+    )
+    thumbnail_filename = models.CharField(max_length=255, unique=True)
+
+    created_at = models.DateTimeField(db_default=Now())
+    updated_at = models.DateTimeField(db_default=Now(), auto_now=True)
+
+    class Meta:
+        abstract = True
+
+    @property
+    def base_path(self) -> Path:
+        """ базовая директория наблюдений """
+        raise NotImplementedError("Subclasses must define 'base_path'")
+
+    @property
+    def json_absolute_path(self) -> Path:
+        """ полный путь к файлу без имени файла """
+        return self.base_path / self.json_relative_path
+
+    @property
+    def json_absolute_path_filename(self) -> Path:
+        """ полный путь к файлу """
+        return self.base_path / self.json_relative_path / self.json_filename
+
+    @property
+    def thumbnail_absolute_path(self) -> Path:
+        """ полный путь к файлу без имени файла """
+        return self.base_path / self.thumbnail_relative_path
+
+    @property
+    def thumbnail_absolute_path_filename(self) -> Path:
+        """ полный путь к файлу """
+        return self.base_path / self.thumbnail_relative_path / self.thumbnail_filename

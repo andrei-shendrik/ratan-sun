@@ -15,7 +15,7 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.writers.fast_acquisition_1_3ghz_fits_
     FastAcquisition1To3GHzFitsWriter
 from ratanpy.utils.common_utils import time_counter
 
-FITS_OUTPUT_PATH = Path(r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun")
+FITS_OUTPUT_PATH = Path(r"D:\data\astro\obs\ratan-600\fast-acquisition-1-3ghz\fits\sun")
 
 def process_observations():
 
@@ -29,7 +29,7 @@ def process_observations():
     # read_fits(fast_acquisition_fits_file)
 
     fast_acquisition_bin_file = Path(
-       r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2024\08\2024-08-01_121957_sun+00.bin.gz")
+       r"D:\data\astro\obs\ratan-600\fast-acquisition-1-3ghz\raw\sun\2024\08\2024-08-01_121957_sun+00.bin.gz")
 
     # fast_acquisition_bin_file = Path(
     #     r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\raw\sun\2025\09\2025-09-01_121336_sun+00.bin.gz")
@@ -40,8 +40,8 @@ def process_observations():
 
     output_fits_file = process_fast_acquisition(fast_acquisition_bin_file, FITS_OUTPUT_PATH)
 
-    #fits_file = Path(r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun\2025\09\2025-09-01_121336_sun+00.fits")
-    #read_fits(fits_file)
+    fits_file = Path(r"D:\data\astro\obs\ratan-600\fast-acquisition-1-3ghz\fits\sun\2025\09\2025-09-01_121336_sun+00.fits")
+    read_fits(fits_file)
 
 @time_counter
 def process_fast_acquisition(fast_acquisition_bin_file: Path, fits_output_path: Path) -> Path:

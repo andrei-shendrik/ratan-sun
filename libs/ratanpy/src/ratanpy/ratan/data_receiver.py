@@ -1,7 +1,7 @@
-from enum import Enum
+from ratanpy.common.advanced_enum import AdvancedEnum
 
 
-class DataReceiver(Enum):
+class DataReceiver(AdvancedEnum):
     """
         Приемные комплексы
 

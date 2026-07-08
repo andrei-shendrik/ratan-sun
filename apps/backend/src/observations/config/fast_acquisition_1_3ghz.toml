@@ -6,3 +6,17 @@ allowed_patterns = [
 forbidden_patterns = [
     '(?i)AR'
 ]
+
+# visualization
+[visualization.spectrogram]
+frequencies = 512
+samples = 1000
+
+[visualization.scan_group]
+frequencies = 50
+samples = 1000
+
+# превью-картинки (webp)
+[visualization.thumbnail]
+width_px = 800
+height_px = 450

@@ -9,6 +9,8 @@ import numpy as np
 from astropy.coordinates import EarthLocation
 import astropy.units as u
 
+from ratanpy.ratan.polarization_type import PolarizationType
+
 
 class FastAcquisition1To3GHzConfiguration:
     def __init__(self):
@@ -57,8 +59,8 @@ class FastAcquisition1To3GHzConfiguration:
             with config_file.open("rb") as f:
                 config_data = tomllib.load(f)
                 channels = config_data['channels']
-                instance._pol_ch0 = channels['pol_ch0']
-                instance._pol_ch1 = channels['pol_ch1']
+                instance._pol_ch0 = PolarizationType.from_string(channels['pol_ch0']) # channels['pol_ch0']
+                instance._pol_ch1 = PolarizationType.from_string(channels['pol_ch1']) # channels['pol_ch1']
 
                 bin_data = config_data['bin_data']
                 instance._chunk_length = bin_data['chunk_length']
@@ -112,11 +114,11 @@ class FastAcquisition1To3GHzConfiguration:
             raise RuntimeError(f"Error: {e}") from e
 
     @property
-    def pol_ch0(self) -> str:
+    def pol_ch0(self) -> PolarizationType:
         return self._pol_ch0
 
     @property
-    def pol_ch1(self) -> str:
+    def pol_ch1(self) -> PolarizationType:
         return self._pol_ch1
 
     @property

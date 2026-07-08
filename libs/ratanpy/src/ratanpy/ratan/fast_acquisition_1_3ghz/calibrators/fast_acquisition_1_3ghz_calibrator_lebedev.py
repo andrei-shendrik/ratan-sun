@@ -5,6 +5,7 @@ from typing import Tuple
 
 import numpy as np
 
+from ratanpy.ratan.channel_mapper import ChannelMapper
 from ratanpy.ratan.fast_acquisition_1_3ghz.calibrators.fast_acquisition_1_3ghz_calibration_coefficients import \
     FastAcquisitionCalibrationCoefficients
 from ratanpy.ratan.fast_acquisition_1_3ghz.calibrators.fast_acquisition_1_3ghz_calibrator import \
@@ -60,17 +61,10 @@ class FastAcquisition1To3GHzCalibratorLebedev(FastAcquisition1To3GHzCalibrator):
 
         metadata = observation.metadata
         metadata.is_calibrated = True
-        metadata._quiet_sun_point_arcsec = qsc_arcsec
-        metadata._unit = "s.f.u."
+        metadata.quiet_sun_point_arcsec = qsc_arcsec
+        metadata.unit = "s.f.u."
 
-        polarization_to_attribute = {
-            PolarizationType.LHCP.value: 'lhcp',
-            PolarizationType.RHCP.value: 'rhcp'
-        }
-        channel_mapping = {
-            'pol_channel0': polarization_to_attribute[config.pol_ch0],
-            'pol_channel1': polarization_to_attribute[config.pol_ch1],
-        }
+        channel_mapping = ChannelMapper.get_channel_mapping(config.pol_ch0, config.pol_ch1)
 
         cal_coeffs = FastAcquisitionCalibrationCoefficients(channel_mapping=channel_mapping)
         cal_coeffs.calibration_coefficients_pol_channel0 = coeffs_lhcp
@@ -321,14 +315,8 @@ class FastAcquisition1To3GHzCalibratorLebedev(FastAcquisition1To3GHzCalibrator):
         metadata._quiet_sun_point_arcsec = suggested_qsp_coord.value
         metadata._unit = "s.f.u."
 
-        polarization_to_attribute = {
-            PolarizationType.LHCP.value: 'lhcp',
-            PolarizationType.RHCP.value: 'rhcp'
-        }
-        channel_mapping = {
-            'pol_channel0': polarization_to_attribute[config.pol_ch0],
-            'pol_channel1': polarization_to_attribute[config.pol_ch1],
-        }
+        channel_mapping = ChannelMapper.get_channel_mapping(config.pol_ch0, config.pol_ch1)
+
         cal_coeffs = FastAcquisitionCalibrationCoefficients(channel_mapping=channel_mapping)
         cal_coeffs.calibration_coefficients_pol_channel0 = cal_coeffs0
         cal_coeffs.calibration_coefficients_pol_channel1 = cal_coeffs1

@@ -247,6 +247,9 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         num_frequencies = lhcp.shape[0]
         num_samples = lhcp.shape[1]
 
+        metadata.freq_min_mhz = config.freq_min
+        metadata.freq_max_mhz = config.freq_max
+
         frequency_axis = np.linspace(config.freq_min / 1000, config.freq_max / 1000, num=num_frequencies, dtype=np.float64)
         polarization_axis = [PolarizationType.LHCP, PolarizationType.RHCP]
 

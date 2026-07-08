@@ -4,7 +4,7 @@ from pathlib import Path
 from django.db import models
 
 from observations.config.fast_acquisition_1_3ghz_settings import FastAcquisition1To3GHzSettings
-from observations.enums import DataValues, PolarizationType
+from observations.enums import DataValues, PolarizationType, ObservationMode
 from observations.models.base import AbstractProcessingJob, AbstractRatanObservation, AbstractVisualization
 from ratanpy.ratan.data_receiver import DataReceiver
 
@@ -84,17 +84,19 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
 
     datetime_culmination_feed_horn_utc = models.DateTimeField(null=True, blank=True, db_index=True) # db_index=True для поиска последнего наблюдения
 
+    obs_mode = models.CharField(null=True, blank=True, max_length=20, choices=ObservationMode)
+
     altitude = models.FloatField(null=True, blank=True)
     declination = models.FloatField(null=True, blank=True)
     right_ascension = models.FloatField(null=True, blank=True)
-    solar_radius = models.FloatField(null=True, blank=True)
+    solar_r = models.FloatField(null=True, blank=True)
     solar_p = models.FloatField(null=True, blank=True)
+    solar_b = models.FloatField(null=True, blank=True)
     scan_angle = models.FloatField(null=True, blank=True)
-    solar_b_angle = models.FloatField(null=True, blank=True)
 
     data_values = models.CharField(null=True, blank=True, max_length=2, choices=DataValues)
-    pol_ch0 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
-    pol_ch1 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
+    pol_chan0 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
+    pol_chan1 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
 
     num_samples = models.IntegerField(null=True, blank=True)
     num_frequencies = models.IntegerField(null=True, blank=True)

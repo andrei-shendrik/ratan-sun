@@ -12,6 +12,7 @@ from ratanpy.ratan.channel_mapper import ChannelMapper
 from ratanpy.ratan.coordinate_axes import CoordinateAxes
 from ratanpy.ratan.data_receiver import DataReceiver
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_metadata import FastAcquisition1To3GHzMetadata
+from ratanpy.ratan.observation_mode import ObservationMode
 from ratanpy.ratan.polarization_type import PolarizationType
 from ratanpy.ratan.services.ratan_metadata_loader import RatanMetadataLoader
 
@@ -71,7 +72,7 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
 
         metadata.telescope = header.get('TELESCOP')
         metadata.data_receiver = DataReceiver.from_string(header.get('RECEIVER'))
-        metadata.observation_mode = DataReceiver.from_string(header.get('OBS-MODE'))
+        metadata.observation_mode = ObservationMode.from_string(header.get('OBS-MODE'))
 
         metadata.object_of_observation = header.get('OBJECT')
         metadata.azimuth = header.get('AZIMUTH')
@@ -145,8 +146,8 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
 
         metadata.record_duration_seconds = header.get('REC_DUR')
 
-        metadata.record_duration_seconds = header.get('ARCS_RES')
-        metadata.record_duration_seconds = header.get('DOWNSAMP')
+        metadata.arcsec_resolution = header.get('ARCS_RES')
+        metadata.time_reduction_factor = header.get('DOWNSAMP')
 
         # todo создание вместо чтения
         # try:

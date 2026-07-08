@@ -370,7 +370,7 @@ def _get_output_fits_filename(observation: FastAcquisition1To3GHzObservation, fi
     return output_fits_file
 
 def main():
-    # process_observations()
+    process_observations()
     draw_charts()
 
 if __name__ == "__main__":

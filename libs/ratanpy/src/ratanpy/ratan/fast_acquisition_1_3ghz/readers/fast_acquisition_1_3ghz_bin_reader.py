@@ -21,7 +21,6 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.generator_state_data import 
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.kurtosis_data import KurtosisData
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.polarization_channels_data import \
     PolarizationChannelsData
-from ratanpy.ratan.polarization_type import PolarizationType
 from ratanpy.ratan.services.ratan_observation_reader import RatanObservationReader
 
 

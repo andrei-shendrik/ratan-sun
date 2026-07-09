@@ -70,6 +70,8 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
 
         metadata = FastAcquisition1To3GHzMetadata()
 
+        metadata.file
+
         metadata.telescope = header.get('TELESCOP')
         metadata.data_receiver = DataReceiver.from_string(header.get('RECEIVER'))
         metadata.observation_mode = ObservationMode.from_string(header.get('OBS-MODE'))

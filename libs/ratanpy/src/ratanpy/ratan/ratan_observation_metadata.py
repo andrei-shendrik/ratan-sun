@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 from datetime import datetime
+from pathlib import Path
 
 from astropy.coordinates import Angle
 
@@ -42,12 +43,12 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def obs_file(self):
+    def obs_file(self) -> Path | None:
         pass
 
     @obs_file.setter
     @abstractmethod
-    def obs_file(self, obs_file):
+    def obs_file(self, obs_file: Path | None) -> None:
         pass
 
     @property

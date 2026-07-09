@@ -256,4 +256,4 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         hdu_list = fits.HDUList([primary_hdu, compressed_hdu, table_hdu])
         hdu_list.writeto(self._output_file, overwrite=self._overwrite)
 
-        logger.info(f"[{observation.metadata.bin_file.name}] Successfully converted to '{self._output_file}'")
+        logger.info(f"[{observation.metadata.obs_file.name}] Successfully converted to '{self._output_file}'")

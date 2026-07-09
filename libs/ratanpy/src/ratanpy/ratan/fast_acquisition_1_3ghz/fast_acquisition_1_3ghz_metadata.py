@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 from astropy.coordinates import Angle
 
@@ -81,11 +82,12 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
 
     def __init__(self):
         super().__init__()
-        self._obs_file = None
-        self._bin_file = None
-        self._desc_file = None
+        self._obs_file: Path | None = None
+        self._obs_filename: str | None = None
         self._data_receiver = None
         self._data_file_extension = None
+
+        self._is_raw: bool | None = None
 
         self._is_bad = None
 
@@ -187,28 +189,28 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._feedhorn_offset_time = None
 
     @property
-    def obs_file(self):
-        return self._bin_file
+    def obs_filename(self) -> str | None:
+        return self._obs_filename
+
+    @obs_filename.setter
+    def obs_filename(self, obs_filename: str):
+        self._obs_filename = obs_filename
+
+    @property
+    def obs_file(self) -> Path | None:
+        return self._obs_file
 
     @obs_file.setter
-    def obs_file(self, obs_file):
-        self._bin_file = obs_file
+    def obs_file(self, value):
+        self._obs_file = value
 
     @property
-    def bin_file(self):
-        return self._bin_file
+    def is_raw(self) -> bool | None:
+        return self._is_raw
 
-    @bin_file.setter
-    def bin_file(self, value):
-        self._bin_file = value
-
-    @property
-    def desc_file(self):
-        return self._desc_file
-
-    @desc_file.setter
-    def desc_file(self, value):
-        self._desc_file = value
+    @is_raw.setter
+    def is_raw(self, is_raw: bool) -> None:
+        self._is_raw = is_raw
 
     @property
     def observation_mode(self) -> ObservationMode:

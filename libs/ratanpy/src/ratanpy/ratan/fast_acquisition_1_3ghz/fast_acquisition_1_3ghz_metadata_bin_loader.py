@@ -57,18 +57,19 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         else:
             raise ValueError(f"File {bin_file} has invalid extension. Expected .bin, but found {bin_file.suffix}")
 
-        metadata.bin_file = bin_file
-        metadata.desc_file = bin_file.with_name(bin_file_base_name + ".desc")
+        metadata.obs_filename = bin_file_name
+        metadata.obs_file = bin_file
+        desc_file = bin_file.with_name(bin_file_base_name + ".desc")
         try:
-            FileUtils.validate_file(metadata.desc_file)
+            FileUtils.validate_file(desc_file)
         except Exception as e:
             logger.exception(e)
-            raise ValueError(f"File {metadata.desc_file} has invalid extension. Expected .desc, but found {metadata.desc_file.suffix}")
+            raise ValueError(f"File {desc_file} has invalid extension. Expected .desc, but found {desc_file.suffix}")
 
         metadata.data_receiver = DataReceiver.FAST_ACQUISITION_1_3GHZ
 
         desc_reader = DescReader()
-        desc_data = desc_reader.read(metadata.desc_file)
+        desc_data = desc_reader.read(desc_file)
 
         metadata.polarization_channel0 = config.pol_ch0
         metadata.polarization_channel1 = config.pol_ch1

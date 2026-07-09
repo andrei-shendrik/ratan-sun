@@ -81,7 +81,6 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
     )
 
     datetime_culmination_efrat_utc = models.DateTimeField(null=True, blank=True, db_index=True)
-
     datetime_culmination_feed_horn_utc = models.DateTimeField(null=True, blank=True, db_index=True) # db_index=True для поиска последнего наблюдения
 
     obs_mode = models.CharField(null=True, blank=True, max_length=20, choices=ObservationMode)

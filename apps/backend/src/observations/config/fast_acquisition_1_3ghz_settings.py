@@ -84,11 +84,11 @@ class FastAcquisition1To3GHzSettings(BaseModel):
 
             filters = FileFilterSettings(**toml_data.get('file_filters', {}))
 
-            vis_data = toml_data['fits_visualization']
+            vis_data = toml_data['visualization']
 
             vis_settings = VisualizationSettings(
                 spectrogram=SpectrogramSettings(**vis_data['spectrogram']),
-                scan=ScanGroupSettings(**vis_data['scan']),
+                scan=ScanGroupSettings(**vis_data['scan_group']),
                 thumbnail=ThumbnailSettings(**vis_data['thumbnail'])
             )
 

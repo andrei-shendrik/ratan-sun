@@ -1,6 +1,6 @@
 import logging
 import zoneinfo
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import numpy as np
 from astropy.coordinates import Angle
@@ -90,7 +90,9 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
         metadata.solar_b = Angle(header.get('SOLAR_B'), unit=u.deg)
 
         metadata.feed_offset = header.get('FEED_OFF')
-        metadata.feed_offset_time = header.get('FE_OFF_T').total_seconds()
+
+        feed_offset_time = header.get('FE_OFF_T')
+        metadata.feed_offset_time = timedelta(seconds=feed_offset_time) if feed_offset_time is not None else None
 
         metadata.arcsec_per_sample = header.get('ARCPSAM')
         metadata.arcsec_per_second = Quantity(header.get('ARCPSEC'), unit=u.arcsec / u.s)

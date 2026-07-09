@@ -154,8 +154,8 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         header['OBJECT'] = metadata.object_of_observation
         header['AZIMUTH'] = metadata.azimuth
 
-        header['DATE-OBS'] = metadata.datetime_culmination_feed_horn_local.strftime('%Y-%m-%d')
-        header["TIME-OBS"] = metadata.datetime_culmination_feed_horn_local.strftime('%H:%M:%S')
+        header['DATE-OBS'] = metadata.datetime_obs_local.strftime('%Y-%m-%d')
+        header["TIME-OBS"] = metadata.datetime_obs_local.strftime('%H:%M:%S')
 
         culm_efr_utc = metadata.datetime_culmination_efrat_utc
         header['CULM_EFR'] = (culm_efr_utc.isoformat(), f"Culmination by EFRAT, UTC")

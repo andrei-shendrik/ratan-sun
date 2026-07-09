@@ -59,7 +59,6 @@ def task_fast_acq_1_3ghz_bin2fits(self, job_id: str):
 
         if is_success:
             task_fast_acq_1_3ghz_fits_to_db.delay(job_id)
-
     except MemoryError:
         """
         если свободной памяти недостаточно, возврат задачи в очередь на 60 секунд.
@@ -68,22 +67,22 @@ def task_fast_acq_1_3ghz_bin2fits(self, job_id: str):
         raise self.retry(countdown=60)
 
 @shared_task
-def task_fast_acq_1_3ghz_fits_to_db(self, job_id: str):
+def task_fast_acq_1_3ghz_fits_to_db(job_id: str):
     """ добавление fits наблюдения в БД """
     settings = FastAcquisition1To3GHzSettings.load()
     fits_to_db = FastAcquisition1To3GHzFitsToDB(settings)
 
     is_success = fits_to_db.execute(job_id)
-    if is_success:
-        task_fast_acq_1_3ghz_create_visualization_data.delay(job_id)
-
-@shared_task(bind=True, max_retries=5)
-def task_fast_acq_1_3ghz_create_visualization_data(self, job_id: str):
-    """ создание json и thumbnails """
-    settings = FastAcquisition1To3GHzSettings.load()
-    service = VisualizationService(settings)
-
-    try:
-        service.execute(job_id)
-    except MemoryError:
-        raise self.retry(countdown=60)
+#     if is_success:
+#         task_fast_acq_1_3ghz_create_visualization_data.delay(job_id)
+#
+# @shared_task(bind=True, max_retries=5)
+# def task_fast_acq_1_3ghz_create_visualization_data(self, job_id: str):
+#     """ создание JSON и thumbnails """
+#     settings = FastAcquisition1To3GHzSettings.load()
+#     service = VisualizationService(settings)
+#
+#     try:
+#         service.execute(job_id)
+#     except MemoryError:
+#         raise self.retry(countdown=60)

@@ -43,7 +43,27 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def obs_file(self) -> Path | None:
+    def datetime_obs_utc(self) -> datetime:
+        pass
+
+    @datetime_obs_utc.setter
+    @abstractmethod
+    def datetime_obs_utc(self, value: datetime | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def datetime_obs_local(self) -> datetime:
+        pass
+
+    @datetime_obs_local.setter
+    @abstractmethod
+    def datetime_obs_local(self, value: datetime | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def obs_file(self) -> Path:
         pass
 
     @obs_file.setter
@@ -103,7 +123,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def altitude(self) -> Angle | None:
+    def altitude(self) -> Angle:
         pass
 
     @altitude.setter
@@ -113,7 +133,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def declination(self) -> Angle | None:
+    def declination(self) -> Angle:
         pass
 
     @declination.setter
@@ -123,7 +143,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def right_ascension(self) -> Angle | None:
+    def right_ascension(self) -> Angle:
         pass
 
     @right_ascension.setter
@@ -133,7 +153,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def solar_r(self) -> Angle | None:
+    def solar_r(self) -> Angle:
         pass
 
     @solar_r.setter
@@ -143,7 +163,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def solar_p(self) -> Angle | None:
+    def solar_p(self) -> Angle:
         pass
 
     @solar_p.setter
@@ -153,7 +173,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def scan_angle(self) -> Angle | None:
+    def scan_angle(self) -> Angle:
         pass
 
     @scan_angle.setter
@@ -163,7 +183,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def solar_b(self) -> Angle | None:
+    def solar_b(self) -> Angle:
         pass
 
     @solar_b.setter
@@ -173,7 +193,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def datetime_reg_start_utc(self) -> datetime | None:
+    def datetime_reg_start_utc(self) -> datetime:
         pass
 
     @datetime_reg_start_utc.setter
@@ -183,7 +203,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def datetime_reg_start_local(self) -> datetime | None:
+    def datetime_reg_start_local(self) -> datetime:
         pass
 
     @datetime_reg_start_local.setter
@@ -193,7 +213,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def datetime_reg_stop_utc(self) -> datetime | None:
+    def datetime_reg_stop_utc(self) -> datetime:
         pass
 
     @datetime_reg_stop_utc.setter

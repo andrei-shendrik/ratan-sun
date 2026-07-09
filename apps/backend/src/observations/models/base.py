@@ -5,7 +5,7 @@ from pathlib import Path
 
 from django.db import models
 from django.db.models.functions import Now
-from observations.enums import ProcessingJobStatus, ObservationMode
+from observations.enums import ProcessingJobStatus
 
 
 # базовые абстракции
@@ -68,15 +68,6 @@ class AbstractObservation(models.Model):
         return self.to_timezone(dt, self.local_timezone)
 
 class AbstractRatanObservation(AbstractObservation):
-
-    observation_mode = models.CharField(
-        null=True,
-        blank=True,
-        max_length=20,
-        choices=ObservationMode,
-        default=ObservationMode.REGULAR,
-        db_index=True
-    )
 
     object_of_observation = models.CharField(null=True, blank=True, max_length=100, db_index=True)
     azimuth = models.FloatField(null=True, blank=True, db_index=True)

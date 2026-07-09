@@ -102,10 +102,6 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
     num_frequencies = models.IntegerField(null=True, blank=True)
     ref_time = models.FloatField(null=True, blank=True, help_text="seconds from the start of registration")
     ref_sample = models.IntegerField(null=True, blank=True)
-    start_pulse_edge_sample = models.IntegerField(null=True, blank=True)
-    start_pulse_edge_time = models.FloatField(null=True, blank=True)
-    stop_pulse_edge_sample = models.IntegerField(null=True, blank=True)
-    stop_pulse_edge_time = models.FloatField(null=True, blank=True)
 
     samples_per_second = models.FloatField(null=True, blank=True)
     arcsec_per_sample = models.FloatField(null=True, blank=True)

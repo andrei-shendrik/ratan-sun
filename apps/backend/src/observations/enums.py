@@ -30,4 +30,3 @@ class ObservationMode(models.TextChoices):
     REGULAR = 'regular', 'Regular'
     TRACKING = 'tracking', 'Tracking'
     SCANNING = 'scanning', 'Scanning'
-    UNSPECIFIED = 'unspecified', 'Unspecified'

@@ -96,6 +96,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._polarization_channel0: PolarizationType | None = None
         self._polarization_channel1: PolarizationType | None = None
 
+        self._datetime_obs_utc: datetime | None = None
+        self._datetime_obs_local: datetime | None = None
+
         self._datetime_reg_start_utc: datetime | None = None # startobs
         self._datetime_reg_start_local: datetime | None = None
 
@@ -189,15 +192,19 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._feedhorn_offset_time = None
 
     @property
-    def obs_filename(self) -> str | None:
+    def obs_filename(self) -> str:
+        if self._obs_filename is None:
+            raise ValueError(f"Value is not set")
         return self._obs_filename
 
     @obs_filename.setter
-    def obs_filename(self, obs_filename: str):
+    def obs_filename(self, obs_filename: str | None) -> None:
         self._obs_filename = obs_filename
 
     @property
-    def obs_file(self) -> Path | None:
+    def obs_file(self) -> Path:
+        if self._obs_file is None:
+            raise ValueError(f"Value is not set")
         return self._obs_file
 
     @obs_file.setter
@@ -205,7 +212,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._obs_file = value
 
     @property
-    def is_raw(self) -> bool | None:
+    def is_raw(self) -> bool:
+        if self._is_raw is None:
+            raise ValueError(f"Value is not set")
         return self._is_raw
 
     @is_raw.setter
@@ -221,7 +230,29 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._observation_mode = value
 
     @property
-    def datetime_reg_start_utc(self) -> datetime | None:
+    def datetime_obs_utc(self) -> datetime:
+        if self._datetime_obs_utc is None:
+            raise ValueError(f"Value is not set")
+        return self._datetime_obs_utc
+
+    @datetime_obs_utc.setter
+    def datetime_obs_utc(self, value: datetime | None) -> None:
+        self._datetime_obs_utc = value
+
+    @property
+    def datetime_obs_local(self) -> datetime:
+        if self._datetime_obs_local is None:
+            raise ValueError(f"Value is not set")
+        return self._datetime_obs_local
+
+    @datetime_obs_local.setter
+    def datetime_obs_local(self, value: datetime | None) -> None:
+        self._datetime_obs_local = value
+
+    @property
+    def datetime_reg_start_utc(self) -> datetime:
+        if self._datetime_reg_start_utc is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_reg_start_utc
 
     @datetime_reg_start_utc.setter
@@ -229,7 +260,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_reg_start_utc = value
 
     @property
-    def datetime_reg_start_local(self) -> datetime | None:
+    def datetime_reg_start_local(self) -> datetime:
+        if self._datetime_reg_start_local is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_reg_start_local
 
     @datetime_reg_start_local.setter
@@ -237,7 +270,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_reg_start_local = value
 
     @property
-    def datetime_culmination_efrat_local(self) -> datetime | None:
+    def datetime_culmination_efrat_local(self) -> datetime:
+        if self._datetime_culmination_efrat_local is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_culmination_efrat_local
 
     @datetime_culmination_efrat_local.setter
@@ -245,7 +280,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_culmination_efrat_local = value
 
     @property
-    def datetime_culmination_efrat_utc(self) -> datetime | None:
+    def datetime_culmination_efrat_utc(self) -> datetime:
+        if self._datetime_culmination_efrat_utc is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_culmination_efrat_utc
 
     @datetime_culmination_efrat_utc.setter
@@ -253,7 +290,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_culmination_efrat_utc = value
 
     @property
-    def datetime_culmination_feed_horn_local(self) -> datetime | None:
+    def datetime_culmination_feed_horn_local(self) -> datetime:
+        if self._datetime_culmination_feed_horn_local is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_culmination_feed_horn_local
 
     @datetime_culmination_feed_horn_local.setter
@@ -261,7 +300,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_culmination_feed_horn_local = value
 
     @property
-    def datetime_culmination_feed_horn_utc(self) -> datetime | None:
+    def datetime_culmination_feed_horn_utc(self) -> datetime:
+        if self._datetime_culmination_feed_horn_utc is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_culmination_feed_horn_utc
 
     @datetime_culmination_feed_horn_utc.setter
@@ -269,7 +310,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_culmination_feed_horn_utc = value
 
     @property
-    def datetime_reg_stop_utc(self) -> datetime | None:
+    def datetime_reg_stop_utc(self) -> datetime:
+        if self._datetime_reg_stop_utc is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_reg_stop_utc
 
     @datetime_reg_stop_utc.setter
@@ -277,7 +320,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._datetime_reg_stop_utc = value
 
     @property
-    def datetime_reg_stop_local(self) -> datetime | None:
+    def datetime_reg_stop_local(self) -> datetime:
+        if self._datetime_reg_stop_local is None:
+            raise ValueError(f"Value is not set")
         return self._datetime_reg_stop_local
 
     @datetime_reg_stop_local.setter
@@ -341,7 +386,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._azimuth = value
 
     @property
-    def solar_p(self) -> Angle | None:
+    def solar_p(self) -> Angle:
+        if self._solar_p is None:
+            raise ValueError(f"Value is not set")
         return self._solar_p
 
     @solar_p.setter
@@ -349,7 +396,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._solar_p = value
 
     @property
-    def solar_b(self) -> Angle | None:
+    def solar_b(self) -> Angle:
+        if self._solar_b is None:
+            raise ValueError(f"Value is not set")
         return self._solar_b
 
     @solar_b.setter
@@ -357,7 +406,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._solar_b = value
 
     @property
-    def solar_r(self) -> Angle | None:
+    def solar_r(self) -> Angle:
+        if self._solar_r is None:
+            raise ValueError(f"Value is not set")
         return self._solar_r
 
     @solar_r.setter
@@ -365,7 +416,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._solar_r = value
 
     @property
-    def altitude(self) -> Angle | None:
+    def altitude(self) -> Angle:
+        if self._altitude is None:
+            raise ValueError(f"Value is not set")
         return self._altitude
 
     @altitude.setter
@@ -373,7 +426,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._altitude = value
 
     @property
-    def right_ascension(self) -> Angle | None:
+    def right_ascension(self) -> Angle:
+        if self._right_ascension is None:
+            raise ValueError(f"Value is not set")
         return self._right_ascension
 
     @right_ascension.setter
@@ -381,7 +436,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._right_ascension = value
 
     @property
-    def declination(self) -> Angle | None:
+    def declination(self) -> Angle:
+        if self._declination is None:
+            raise ValueError(f"Value is not set")
         return self._declination
 
     @declination.setter
@@ -389,7 +446,9 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._declination = value
 
     @property
-    def scan_angle(self) -> Angle | None:
+    def scan_angle(self) -> Angle:
+        if self._scan_angle is None:
+            raise ValueError(f"Value is not set")
         return self._scan_angle
 
     @scan_angle.setter

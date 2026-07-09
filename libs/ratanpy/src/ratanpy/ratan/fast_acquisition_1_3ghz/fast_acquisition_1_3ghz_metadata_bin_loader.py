@@ -20,6 +20,8 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.config.config_instance import config
 from ratanpy.ratan.fast_acquisition_1_3ghz.desc_reader import DescReader
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_data import \
     FastAcquisition1To3GHzData
+from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_filename_parser import \
+    FastAcquisition1To3GHzFilenameParser
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_metadata import \
     FastAcquisition1To3GHzMetadata
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.fast_acquisition_1_3ghz_raw_data import \
@@ -67,6 +69,10 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
             raise ValueError(f"File {desc_file} has invalid extension. Expected .desc, but found {desc_file.suffix}")
 
         metadata.data_receiver = DataReceiver.FAST_ACQUISITION_1_3GHZ
+
+        parsed = FastAcquisition1To3GHzFilenameParser.parse(bin_file_name)
+        metadata.datetime_obs_utc = parsed.datetime_utc
+        metadata.datetime_obs_local = parsed.datetime_local
 
         desc_reader = DescReader()
         desc_data = desc_reader.read(desc_file)

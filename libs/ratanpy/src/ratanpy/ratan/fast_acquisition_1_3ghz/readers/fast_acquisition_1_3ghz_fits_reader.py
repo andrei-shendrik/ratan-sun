@@ -53,5 +53,5 @@ class FastAcquisition1To3GHzFitsReader(ObservationReader):
                 # table_hdu = hdul[1]
             return FastAcquisition1To3GHzMetadataFitsLoader.load(header) # (header, table_hdu)
         except Exception as e:
-            logger.error(f"Failed to read FITS metadata from {file_path.name}: {e}")
+            # logger.error(f"Failed to read FITS metadata from {file_path.name}: {e}")
             raise IOError(f"Metadata read error: {e}") from e

@@ -12,4 +12,3 @@ class ObservationMode(AdvancedEnum):
     REGULAR = "Regular"
     TRACKING = "Tracking"
     SCANNING = "Scanning"
-    UNSPECIFIED = "Unspecified"

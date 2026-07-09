@@ -77,7 +77,9 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
         metadata.object_of_observation = header.get('OBJECT')
         metadata.azimuth = header.get('AZIMUTH')
 
-        metadata.altitude = Angle(header.get('ALTITUDE'), unit=u.deg)
+        altitude_value = header.get('ALTITUDE')
+        metadata.altitude = Angle(altitude_value, unit=u.deg) if altitude_value is not None else None
+
         metadata.right_ascension = Angle(header.get('SOL_RA'), unit=u.deg)
         metadata.declination = Angle(header.get('SOL_DEC'), unit=u.deg)
 
@@ -105,6 +107,10 @@ class FastAcquisition1To3GHzMetadataFitsLoader(RatanMetadataLoader):
 
         metadata.polarization_channel0 = PolarizationType.from_string(header.get('POL_CH0'))
         metadata.polarization_channel1 = PolarizationType.from_string(header.get('POL_CH1'))
+        """
+        metadata.data_values это свойство,
+        оно создается автоматически из polarization_channel0 и polarization_channel1
+        """
 
         metadata.half_width_kurtosis_interval = header.get('KURTOSIS')
         metadata.attenuator_common = header.get('ATT1')

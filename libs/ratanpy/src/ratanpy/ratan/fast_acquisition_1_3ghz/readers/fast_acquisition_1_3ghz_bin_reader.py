@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from ratanpy.observation.observation import Observation
+from ratanpy.ratan.channel_mapper import ChannelMapper
 from ratanpy.ratan.fast_acquisition_1_3ghz import fast_input
 from ratanpy.ratan.fast_acquisition_1_3ghz.config.config_instance import config
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_data import \
@@ -20,7 +21,6 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.generator_state_data import 
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.kurtosis_data import KurtosisData
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.polarization_channels_data import \
     PolarizationChannelsData
-from ratanpy.ratan.polarization_type import PolarizationType
 from ratanpy.ratan.services.ratan_observation_reader import RatanObservationReader
 
 
@@ -68,15 +68,7 @@ class FastAcquisition1To3GHzBinReader(RatanObservationReader):
         fast_acq_raw_data.kurtosis_data = kurtosis_data
         fast_acq_raw_data.generator_state_data = gen_state_data
 
-        polarization_to_attribute = {
-            PolarizationType.LHCP.value: 'lhcp',
-            PolarizationType.RHCP.value: 'rhcp'
-        }
-        channel_mapping = {
-            'pol_channel0': polarization_to_attribute[config.pol_ch0],
-            'pol_channel1': polarization_to_attribute[config.pol_ch1],
-        }
-
+        channel_mapping = ChannelMapper.get_channel_mapping(config.pol_ch0, config.pol_ch1)
         fast_acq_data = FastAcquisition1To3GHzData(channel_mapping)
         fast_acq_data.pol_channel0 = joined_channels_0
         fast_acq_data.pol_channel1 = joined_channels_1

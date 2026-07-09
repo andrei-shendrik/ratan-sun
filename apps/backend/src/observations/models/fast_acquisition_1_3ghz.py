@@ -4,8 +4,8 @@ from pathlib import Path
 from django.db import models
 
 from observations.config.fast_acquisition_1_3ghz_settings import FastAcquisition1To3GHzSettings
-from observations.enums import DataValues, PolarizationType
-from observations.models.base import AbstractProcessingJob, AbstractRatanObservation
+from observations.enums import DataValues, PolarizationType, ObservationMode
+from observations.models.base import AbstractProcessingJob, AbstractRatanObservation, AbstractVisualization
 from ratanpy.ratan.data_receiver import DataReceiver
 
 
@@ -39,7 +39,6 @@ class RawObservationFastAcquisition1To3GHz(AbstractRatanObservation):
     @property
     def base_path(self) -> Path:
         return Path(FastAcquisition1To3GHzSettings.load().bin_archive)
-
 
     def __str__(self):
         return self.filename
@@ -82,28 +81,26 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
     )
 
     datetime_culmination_efrat_utc = models.DateTimeField(null=True, blank=True, db_index=True)
-
     datetime_culmination_feed_horn_utc = models.DateTimeField(null=True, blank=True, db_index=True) # db_index=True для поиска последнего наблюдения
+
+    obs_mode = models.CharField(null=True, blank=True, max_length=20, choices=ObservationMode)
 
     altitude = models.FloatField(null=True, blank=True)
     declination = models.FloatField(null=True, blank=True)
     right_ascension = models.FloatField(null=True, blank=True)
-    solar_radius = models.FloatField(null=True, blank=True)
-    solar_position_angle = models.FloatField(null=True, blank=True)
-    solar_b_angle = models.FloatField(null=True, blank=True)
+    solar_r = models.FloatField(null=True, blank=True)
+    solar_p = models.FloatField(null=True, blank=True)
+    solar_b = models.FloatField(null=True, blank=True)
+    scan_angle = models.FloatField(null=True, blank=True)
 
     data_values = models.CharField(null=True, blank=True, max_length=2, choices=DataValues)
-    pol_ch0 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
-    pol_ch1 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
+    pol_chan0 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
+    pol_chan1 = models.CharField(null=True, blank=True, max_length=10, choices=PolarizationType)
 
     num_samples = models.IntegerField(null=True, blank=True)
     num_frequencies = models.IntegerField(null=True, blank=True)
     ref_time = models.FloatField(null=True, blank=True, help_text="seconds from the start of registration")
     ref_sample = models.IntegerField(null=True, blank=True)
-    start_pulse_edge_sample = models.IntegerField(null=True, blank=True)
-    start_pulse_edge_time = models.FloatField(null=True, blank=True)
-    stop_pulse_edge_sample = models.IntegerField(null=True, blank=True)
-    stop_pulse_edge_time = models.FloatField(null=True, blank=True)
 
     samples_per_second = models.FloatField(null=True, blank=True)
     arcsec_per_sample = models.FloatField(null=True, blank=True)
@@ -131,8 +128,6 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
     unit = models.CharField(null=True, blank=True, max_length=50)
     quiet_sun_point_arcsec = models.FloatField(null=True, blank=True)
 
-    json_path = models.CharField(null=True, blank=True, max_length=500)
-
     class Meta:
         db_table = 'fits_observation_fast_acquisition_1_3ghz'
         ordering = ['-datetime_culmination_feed_horn_utc']
@@ -153,6 +148,10 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
         return "1-3 GHz"
 
     @property
+    def base_path(self) -> Path:
+        return Path(FastAcquisition1To3GHzSettings.load().fits_archive)
+
+    @property
     def freq_min_mhz (self) -> float:
         return 1000
 
@@ -170,3 +169,28 @@ class FitsObservationFastAcquisition1To3GHz(AbstractRatanObservation):
 
     def __str__(self):
         return self.filename
+
+class VisualizationFitsFastAcquisition1To3GHz(AbstractVisualization):
+    objects = models.Manager()
+
+    fits_observation = models.OneToOneField(
+        FitsObservationFastAcquisition1To3GHz,
+        on_delete=models.CASCADE,
+        related_name='visualization_fits'
+    )
+
+    spectrogram_num_freqs = models.IntegerField()
+    spectrogram_num_samples = models.IntegerField()
+    scan_group_num_freqs = models.IntegerField()
+    scan_group_num_samples = models.IntegerField()
+
+    class Meta:
+        db_table = 'visualization_fits_fast_acquisition_1_3ghz'
+        ordering = ['-updated_at']
+
+        verbose_name = 'Visualization Fits FastAcquisition 1-3 GHz'
+        verbose_name_plural = 'Visualization Fits FastAcquisition 1-3 GHz'
+
+    @property
+    def base_path(self) -> Path:
+        return Path(FastAcquisition1To3GHzSettings.load().fits_web_data)

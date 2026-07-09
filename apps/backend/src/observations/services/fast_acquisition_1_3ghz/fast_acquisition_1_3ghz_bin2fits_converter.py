@@ -98,4 +98,4 @@ class FastAcquisition1To3GHzBin2FitsConverter:
 
         job.save(update_fields=['status', 'comment', 'time_taken_sec', 'peak_memory_mb', 'updated_at'])
 
-        return result.status == ProcessingJobStatus.SUCCESS
+        return result.status == ProcessingStatus.SUCCESS

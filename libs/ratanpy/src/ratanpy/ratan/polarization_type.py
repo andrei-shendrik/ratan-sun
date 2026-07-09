@@ -1,7 +1,7 @@
-from enum import Enum
+from ratanpy.common.advanced_enum import AdvancedEnum
 
 
-class PolarizationType(Enum):
+class PolarizationType(AdvancedEnum):
 
     """
     polarization = PolarizationType.LHCP

@@ -9,7 +9,7 @@ import astropy
 import sunpy.coordinates.sun
 import numpy as np
 import astropy.units as u
-from astropy.coordinates import SkyCoord, AltAz
+from astropy.coordinates import SkyCoord, AltAz, Angle
 from astropy.time import Time
 from astropy.utils.iers import conf as iers_conf, IERSWarning
 from astropy.utils.data import conf as data_conf
@@ -20,6 +20,8 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.config.config_instance import config
 from ratanpy.ratan.fast_acquisition_1_3ghz.desc_reader import DescReader
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_data import \
     FastAcquisition1To3GHzData
+from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_filename_parser import \
+    FastAcquisition1To3GHzFilenameParser
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_metadata import \
     FastAcquisition1To3GHzMetadata
 from ratanpy.ratan.fast_acquisition_1_3ghz.raw_data.fast_acquisition_1_3ghz_raw_data import \
@@ -57,18 +59,26 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         else:
             raise ValueError(f"File {bin_file} has invalid extension. Expected .bin, but found {bin_file.suffix}")
 
-        metadata.bin_file = bin_file
-        metadata.desc_file = bin_file.with_name(bin_file_base_name + ".desc")
+        metadata.obs_filename = bin_file_name
+        metadata.obs_file = bin_file
+        desc_file = bin_file.with_name(bin_file_base_name + ".desc")
         try:
-            FileUtils.validate_file(metadata.desc_file)
+            FileUtils.validate_file(desc_file)
         except Exception as e:
             logger.exception(e)
-            raise ValueError(f"File {metadata.desc_file} has invalid extension. Expected .desc, but found {metadata.desc_file.suffix}")
+            raise ValueError(f"File {desc_file} has invalid extension. Expected .desc, but found {desc_file.suffix}")
 
         metadata.data_receiver = DataReceiver.FAST_ACQUISITION_1_3GHZ
 
+        parsed = FastAcquisition1To3GHzFilenameParser.parse(bin_file_name)
+        metadata.datetime_obs_utc = parsed.datetime_utc
+        metadata.datetime_obs_local = parsed.datetime_local
+
         desc_reader = DescReader()
-        desc_data = desc_reader.read(metadata.desc_file)
+        desc_data = desc_reader.read(desc_file)
+
+        metadata.polarization_channel0 = config.pol_ch0
+        metadata.polarization_channel1 = config.pol_ch1
 
         metadata.telescope = "RATAN-600"
         metadata.object_of_observation = desc_data.get_value("object")
@@ -152,7 +162,9 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         metadata.solar_p = sunpy.coordinates.sun.P(observing_time)
         metadata.solar_b = sunpy.coordinates.sun.B0(observing_time)
 
-        # metadata.altitude = float(desc_data.get_value("fits_words.ALTITUDE")) # no keyword
+        altitude = desc_data.get_value("fits_words.ALTITUDE") # может быть no keyword
+        if altitude is not None:
+            metadata.altitude = Angle(float(altitude), unit=u.deg)
         # metadata.solar_p = float(desc_data.get_value("fits_words.SOLAR_P"))
         # metadata.solar_b = float(desc_data.get_value("fits_words.SOLAR_B"))
         # metadata.solar_r = float(desc_data.get_value("fits_words.SOLAR_R"))
@@ -171,11 +183,43 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
 
         lst = observing_time.sidereal_time("mean", longitude=config.ratan_location.lon)
         ha = lst - ra0
-        metadata.solar_position_angle = astropy.coordinates.Angle(np.arctan(np.sin(dec0) * np.tan(ha)), unit=u.deg)
-        metadata.arcsec_per_second = ((np.arccos(np.cos(ra0) * np.cos(dec0) * np.cos(ra1) * np.cos(dec1)
-                                             + np.sin(ra0) * np.cos(dec0) * np.sin(ra1) * np.cos(dec1)
-                                             + np.sin(dec0) * np.sin(dec1)) / u.rad)
-                                  / np.pi * 180 * 60 * 60 / observing_time_delay)
+        """
+        scan_angle угол сканирования, угол прохождения диаграммы РАТАН
+        
+        """
+        metadata.scan_angle = astropy.coordinates.Angle(np.arctan(np.sin(dec0) * np.tan(ha)), unit=u.deg)
+
+        """
+        прежний расчет arcsec_per_second:
+        сферическая теория косинусов
+        np.arccos(np.cos(ra0) * np.cos(dec0) * np.cos(ra1) * np.cos(dec1) + 
+          np.sin(ra0) * np.cos(dec0) * np.sin(ra1) * np.cos(dec1) + 
+          np.sin(dec0) * np.sin(dec1))
+        """
+
+        # arcsec_per_second_val = ((np.arccos(np.cos(ra0) * np.cos(dec0) * np.cos(ra1) * np.cos(dec1)
+        #                                      + np.sin(ra0) * np.cos(dec0) * np.sin(ra1) * np.cos(dec1)
+        #                                      + np.sin(dec0) * np.sin(dec1)) / u.rad)
+        #                           / np.pi * 180 * 60 * 60 / observing_time_delay).value
+        #
+        # metadata.arcsec_per_second = Quantity(arcsec_per_second_val, unit=u.arcsec / u.s)
+
+        """ 
+        новый расчет arcsec_per_second:
+        Формула гаверсинусов (Haversine formula)
+        """
+
+        # угловое расстояние между двумя точками
+        angular_distance = solar_coords.separation(new_radec)
+
+        # время в секундах
+        time_delay = observing_time_delay * u.s
+
+        # скорость = расстояние / время
+        drift_speed = (angular_distance / time_delay).to(u.arcsec / u.s)
+
+        # результат в размерной величине
+        metadata.arcsec_per_second = drift_speed
 
         # Прочитать pulse1_rlc и pulse2_rlc. Найти сэмплы с началом последнего импульса и концом препоследнего.
         # Проверить, похоже ли время на правду
@@ -210,6 +254,9 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         num_frequencies = lhcp.shape[0]
         num_samples = lhcp.shape[1]
 
+        metadata.freq_min_mhz = config.freq_min
+        metadata.freq_max_mhz = config.freq_max
+
         frequency_axis = np.linspace(config.freq_min / 1000, config.freq_max / 1000, num=num_frequencies, dtype=np.float64)
         polarization_axis = [PolarizationType.LHCP, PolarizationType.RHCP]
 
@@ -231,7 +278,7 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
 
         frequency_axis = np.linspace(config.freq_min, config.freq_max, num_frequencies)
         time_axis = np.arange(num_samples) / config.samples_per_second
-        arcsec_axis = - (time_axis - metadata.ref_time) * metadata.arcsec_per_second
+        arcsec_axis = - (time_axis - metadata.ref_time) * metadata.arcsec_per_second.value
 
         coordinate_axes = CoordinateAxes()
         coordinate_axes.frequency_axis = frequency_axis
@@ -244,6 +291,8 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         metadata.time_resolution = 1 / config.samples_per_second
         metadata.arcsec_resolution = 1 / metadata.arcsec_per_second
         metadata.switch_polarization_time = 1 / config.switch_polarization_frequency # sec
+
+        metadata.additional_data_cleaning = False
 
         return metadata
 

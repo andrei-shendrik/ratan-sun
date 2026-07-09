@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from ratanpy.observation.observation import Observation
+from ratanpy.observation.observation_metadata import ObservationMetadata
 
 
 class ObservationReader(ABC):
@@ -15,5 +16,5 @@ class ObservationReader(ABC):
         pass
 
     @abstractmethod
-    def read_metadata(self, file_path: Path) -> Observation:
+    def read_metadata(self, file_path: Path) -> ObservationMetadata:
         pass

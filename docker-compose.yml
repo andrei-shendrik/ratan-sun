@@ -87,7 +87,7 @@ services:
       - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
       - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
       - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - FAST_ACQ_1_3GHZ_FITS_WEB_DATA=/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     depends_on:
       db:
         condition: service_healthy
@@ -102,7 +102,7 @@ services:
       - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - ${FAST_ACQ_1_3GHZ_FITS_WEB_DATA}:/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     # запуск через Gunicorn на порту 8000
     ports:
       - "127.0.0.1:8001:8000"
@@ -127,7 +127,7 @@ services:
       - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
       - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
       - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - FAST_ACQ_1_3GHZ_FITS_WEB_DATA=/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     depends_on:
       db:
         condition: service_healthy
@@ -141,7 +141,7 @@ services:
       - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - ${FAST_ACQ_1_3GHZ_FITS_WEB_DATA}:/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     # переопределение команды запуска celery
     # command: ["uv", "run", "celery", "-A", "config", "worker", "-l", "info", "-c", "4"] # для однопоточного убрать ', "-c", "4"'
     command: ["celery", "-A", "config", "worker", "-l", "info", "-c", "4"]
@@ -158,7 +158,7 @@ services:
       - BACKEND_LOG_DIR=/app/logs/ratan-sun/backend
       - FAST_ACQ_1_3GHZ_BIN_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/raw
       - FAST_ACQ_1_3GHZ_FITS_ARCHIVE=/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - FAST_ACQ_1_3GHZ_JSON_DATA=/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - FAST_ACQ_1_3GHZ_FITS_WEB_DATA=/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     depends_on:
       db:
         condition: service_healthy
@@ -170,7 +170,7 @@ services:
       - ${BACKEND_LOG_DIR}:/app/logs/ratan-sun/backend
       - ${FAST_ACQ_1_3GHZ_BIN_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/raw:ro
       - ${FAST_ACQ_1_3GHZ_FITS_ARCHIVE}:/data/obs/ratan-600/fast-acquisition-1-3ghz/fits
-      - ${FAST_ACQ_1_3GHZ_JSON_DATA}:/data/derived/json/web/ratan-600/fast-acquisition-1-3ghz
+      - ${FAST_ACQ_1_3GHZ_FITS_WEB_DATA}:/data/derived/web/ratan-600/fast-acquisition-1-3ghz/fits
     # command: [ "uv", "run", "celery", "-A", "config", "beat", "-l", "info" ]
     command: ["celery", "-A", "config", "beat", "-l", "info"]
 

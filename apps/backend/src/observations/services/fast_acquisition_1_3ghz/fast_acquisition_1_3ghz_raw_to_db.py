@@ -7,7 +7,7 @@ from django.core.cache import cache
 
 from observations.config.fast_acquisition_1_3ghz_settings import FastAcquisition1To3GHzSettings
 from observations.models import RawObservationFastAcquisition1To3GHz
-from observations.services.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_filename_parser import \
+from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_filename_parser import \
     FastAcquisition1To3GHzFilenameParser
 from ratanpy.ratan.fast_acquisition_1_3ghz.bin2fits.observation_file_filter import ObservationFileFilter
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_file_scanner import FastAcquisition1To3GHzFileScanner

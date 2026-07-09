@@ -91,9 +91,18 @@ class ProcessingJobBin2FitsFastAcquisition1To3GHzAdmin(admin.ModelAdmin):
 class FitsObservationFastAcquisition1To3GHzAdmin(admin.ModelAdmin):
     date_hierarchy = 'datetime_obs_utc'
 
-    list_display = ('filename', 'datetime_obs_utc', 'object_of_observation', 'azimuth', 'datetime_culmination_feed_horn_utc')
+    list_display = (
+        'filename',
+        'datetime_obs_utc',
+        'azimuth',
+        'obs_mode',
+        'data_values',
+        'datetime_culmination_feed_horn_utc',
+        'get_record_duration_seconds',
+        'num_samples',
+        'num_frequencies'
+    )
     list_filter = (
-        #'datetime_obs_utc',
         ('datetime_obs_utc', DateTimeRangeFilterBuilder(title="Observation date")),
         'object_of_observation',
         'created_at',
@@ -101,3 +110,10 @@ class FitsObservationFastAcquisition1To3GHzAdmin(admin.ModelAdmin):
     )
     search_fields = ('filename', 'raw_observation__filename')
     readonly_fields = ('id', 'created_at', 'updated_at')
+
+    @admin.display(description='Record Duration', ordering='record_duration_seconds')
+    def get_record_duration_seconds(self, obj):
+        if obj.record_duration_seconds is not None:
+            minutes, seconds = divmod(obj.record_duration_seconds, 60)
+            return f"{int(minutes)}m {seconds:.1f}s"
+        return "—"

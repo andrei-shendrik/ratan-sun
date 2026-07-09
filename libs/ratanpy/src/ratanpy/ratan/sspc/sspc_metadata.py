@@ -71,9 +71,11 @@ class SSPCMetadata(RatanObservationMetadata):
         self._object_of_observation = None
         self._polarization_components = None
         self._right_ascension = None
+        self._solar_declination = None
         self._solar_b_angle = None
-        self._solar_position_angle = None
+        self._solar_p = None
         self._solar_radius = None
+        self._scan_angle = None
         self._telescope = None
 
         self._obs_file = None
@@ -96,11 +98,6 @@ class SSPCMetadata(RatanObservationMetadata):
         self._data_layout = None
 
         self._samples = None
-
-        self._position_angle = None
-        self._solar_declination = None
-
-        self._solar_r = None
 
         self._adc_rate = None
         self._is_bad = None
@@ -270,12 +267,20 @@ class SSPCMetadata(RatanObservationMetadata):
         self._solar_b_angle = value
 
     @property
-    def solar_position_angle(self):
-        return self._solar_position_angle
+    def scan_angle(self):
+        return self._scan_angle
 
-    @solar_position_angle.setter
-    def solar_position_angle(self, value):
-        self._solar_position_angle = value
+    @scan_angle.setter
+    def scan_angle(self, value):
+        self._scan_angle = value
+
+    @property
+    def solar_p(self):
+        return self._solar_p
+
+    @solar_p.setter
+    def solar_p(self, value):
+        self._solar_p = value
 
     @property
     def solar_radius(self):

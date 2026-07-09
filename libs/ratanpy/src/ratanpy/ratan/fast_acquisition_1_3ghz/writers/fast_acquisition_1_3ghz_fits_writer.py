@@ -143,11 +143,19 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         #         header[f'NAXIS{i + 1}'] = dim
 
         header["TELESCOP"] = metadata.telescope
-        header["RECEIVER"] = DataReceiver.FAST_ACQUISITION_1_3GHZ.value
+        header["RECEIVER"] = metadata.data_receiver.value #DataReceiver.FAST_ACQUISITION_1_3GHZ.value
         header["BAND"] = "1-3 GHz"
         header["OBS-MODE"] = (metadata.observation_mode.value, f"Observation Mode")
-        header['DATE-OBS'] = metadata.datetime_culmination_feed_horn_local.strftime('%Y-%m-%d')
-        header["TIME-OBS"] = metadata.datetime_culmination_feed_horn_local.strftime('%H:%M:%S')
+        header['POL_CH0'] = data.channel_mapping["pol_channel0"].upper()
+        header['POL_CH1'] = data.channel_mapping["pol_channel1"].upper()
+        # header['POLAR'] = ("Left / Right", "Polarization") # IV LR
+        header['DATA_VAL'] = (metadata.data_values.value.upper(), "Data Values: LR / IV")
+
+        header['OBJECT'] = metadata.object_of_observation
+        header['AZIMUTH'] = metadata.azimuth
+
+        header['DATE-OBS'] = metadata.datetime_obs_local.strftime('%Y-%m-%d')
+        header["TIME-OBS"] = metadata.datetime_obs_local.strftime('%H:%M:%S')
 
         culm_efr_utc = metadata.datetime_culmination_efrat_utc
         header['CULM_EFR'] = (culm_efr_utc.isoformat(), f"Culmination by EFRAT, UTC")
@@ -156,42 +164,43 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         header['T_START'] = (metadata.datetime_reg_start_utc.isoformat(), f"Observation Start Time, UTC")
         header['T_STOP'] = (metadata.datetime_reg_stop_utc.isoformat(), f"Observation Stop Time, UTC")
 
-        header['OBJECT'] = metadata.object_of_observation
-        header['AZIMUTH'] = metadata.azimuth
         if metadata.altitude is not None:
             header['ALTITUDE'] = (metadata.altitude.value, f"Unit: {metadata.altitude.unit}")
+
         header['SOL_DEC'] = (metadata.declination.value, f"Unit: {metadata.declination.unit}")
         header['SOL_RA'] = (metadata.right_ascension.value, f"Unit: {metadata.right_ascension.unit}")
         header['SOLAR_R'] = (metadata.solar_r.value, f"Unit: {metadata.solar_r.unit}")
         header['SOLAR_P'] = (metadata.solar_p.value, f"Unit: {metadata.solar_p.unit}")
         header['SOLAR_B'] = (metadata.solar_b.value, f"Unit: {metadata.solar_b.unit}")
 
+        header['SCAN_ANG'] = (metadata.scan_angle.value, f"Unit: {metadata.scan_angle.unit}")
+
         header['FEED_OFF'] = (metadata.feed_offset, "Feed Horn Offset, cm")
         header['FE_OFF_T'] = (metadata.feed_offset_time.total_seconds(), "Feed Horn Offset by Time, s")
 
-        header['POL_CH0'] = data.channel_mapping["pol_channel0"].upper()
-        header['POL_CH1'] = data.channel_mapping["pol_channel1"].upper()
         if metadata.is_calibrated is not None:
             header['CALIBR'] = (metadata.is_calibrated, "Is calibrated")
         else:
-            header['CALIBR'] = ("Unknown", "Is calibrated")
+            header['CALIBR'] = (None, "Is calibrated")
 
-        if metadata._quiet_sun_point_arcsec is not None:
-            header['QSP'] = (metadata._quiet_sun_point_arcsec, "Quiet Sun Point, arcsec")
+        if metadata.quiet_sun_point_arcsec is not None:
+            header['QSP'] = (metadata.quiet_sun_point_arcsec, "Quiet Sun Point, arcsec")
         else:
-            header['QSP'] = ("Unknown", "Quiet Sun Point, arcsec")
+            header['QSP'] = (None, "Quiet Sun Point, arcsec")
         #header['ALIGNPA'] = ("to#do", "Quiet sun alignment") # align_file_path
         if metadata.unit is not None:
             header['UNIT'] = (metadata.unit, "Data unit")
         else:
-            header['UNIT'] = ("Unknown", "Data unit")
-        #header['POLAR'] = ("Left / Right", "Polarization") # IV LR
-        header['CLEAN'] = (False, "Additional data cleaning")
+            header['UNIT'] = (None, "Data unit")
+
+        header['CLEAN'] = (metadata.additional_data_cleaning, "Additional data cleaning")
 
         #header['CDELT1'] = metadata.cdelt1
         #header['CRPIX1'] = metadata.crpix1
         header['ARCPSAM'] = (metadata.arcsec_per_sample.value, "Arcsec per sample")
         header['ARCPSEC'] = (metadata.arcsec_per_second.value, "Arcsec per second")
+
+        header['SAMPSEC'] = (metadata.samples_per_second, "Samples per second")
 
         header['NSAMPLES'] = (metadata.num_samples, "Number of samples")
         header['NFREQS'] = (metadata.num_frequencies, "Number of frequencies")
@@ -199,9 +208,17 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         header['REF_TIME'] = (metadata.ref_time, f"Reference time culm, s")
         header['REF_SAMP'] = (metadata.ref_sample, f"Reference sample culm")
 
+        header['REC_DUR'] = (metadata.record_duration_seconds, f"Record duration, s")
+
         header['DTIME'] = (metadata.time_resolution, "Sampling time resolution, s")
         header['DACTIME'] = (metadata.switch_polarization_time, "Actual time resolution, s")
         header['DFREQ'] = (metadata.frequency_resolution, "Frequency resolution, MHz")
+
+        header['ARCS_RES'] = (metadata.arcsec_resolution.value, "Arcsec resolution, s/arcsec")
+        header['DOWNSAMP'] = (metadata.time_reduction_factor, "Time reduction factor")
+
+        header['FREQ_MIN'] = (metadata.freq_min_mhz, "Minimum frequency, MHz")
+        header['FREQ_MAX'] = (metadata.freq_max_mhz, "Maximum frequency, MHz")
 
         if metadata.half_width_kurtosis_interval is not None:
             header['KURTOSIS'] = (metadata.half_width_kurtosis_interval, "Half width of kurtosis interval")
@@ -239,4 +256,4 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
         hdu_list = fits.HDUList([primary_hdu, compressed_hdu, table_hdu])
         hdu_list.writeto(self._output_file, overwrite=self._overwrite)
 
-        logger.info(f"[{observation.metadata.bin_file.name}] Successfully converted to '{self._output_file}'")
+        logger.info(f"[{observation.metadata.obs_file.name}] Successfully converted to '{self._output_file}'")

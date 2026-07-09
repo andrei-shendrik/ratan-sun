@@ -1,5 +1,8 @@
 from abc import abstractmethod, ABC
 from datetime import datetime
+from pathlib import Path
+
+from astropy.coordinates import Angle
 
 from ratanpy.observation.observation_metadata import ObservationMetadata
 
@@ -40,12 +43,32 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def obs_file(self):
+    def datetime_obs_utc(self) -> datetime:
+        pass
+
+    @datetime_obs_utc.setter
+    @abstractmethod
+    def datetime_obs_utc(self, value: datetime | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def datetime_obs_local(self) -> datetime:
+        pass
+
+    @datetime_obs_local.setter
+    @abstractmethod
+    def datetime_obs_local(self, value: datetime | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def obs_file(self) -> Path:
         pass
 
     @obs_file.setter
     @abstractmethod
-    def obs_file(self, obs_file):
+    def obs_file(self, obs_file: Path | None) -> None:
         pass
 
     @property
@@ -100,62 +123,72 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @property
     @abstractmethod
-    def altitude(self) -> float:
+    def altitude(self) -> Angle:
         pass
 
     @altitude.setter
     @abstractmethod
-    def altitude(self, value: float):
+    def altitude(self, value: Angle | None) -> None:
         pass
 
     @property
     @abstractmethod
-    def declination(self) -> float:
+    def declination(self) -> Angle:
         pass
 
     @declination.setter
     @abstractmethod
-    def declination(self, value: float):
+    def declination(self, value: Angle | None) -> None:
         pass
 
     @property
     @abstractmethod
-    def right_ascension(self) -> float:
+    def right_ascension(self) -> Angle:
         pass
 
     @right_ascension.setter
     @abstractmethod
-    def right_ascension(self, value: float):
+    def right_ascension(self, value: Angle | None) -> None:
         pass
 
     @property
     @abstractmethod
-    def solar_radius(self) -> float:
+    def solar_r(self) -> Angle:
         pass
 
-    @solar_radius.setter
+    @solar_r.setter
     @abstractmethod
-    def solar_radius(self, value: float):
-        pass
-
-    @property
-    @abstractmethod
-    def solar_position_angle(self) -> float:
-        pass
-
-    @solar_position_angle.setter
-    @abstractmethod
-    def solar_position_angle(self, value: float):
+    def solar_r(self, value: Angle | None) -> None:
         pass
 
     @property
     @abstractmethod
-    def solar_b_angle(self) -> float:
+    def solar_p(self) -> Angle:
         pass
 
-    @solar_b_angle.setter
+    @solar_p.setter
     @abstractmethod
-    def solar_b_angle(self, value: float):
+    def solar_p(self, value: Angle | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def scan_angle(self) -> Angle:
+        pass
+
+    @scan_angle.setter
+    @abstractmethod
+    def scan_angle(self, value: Angle | None) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def solar_b(self) -> Angle:
+        pass
+
+    @solar_b.setter
+    @abstractmethod
+    def solar_b(self, value: Angle | None) -> None:
         pass
 
     @property
@@ -165,7 +198,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @datetime_reg_start_utc.setter
     @abstractmethod
-    def datetime_reg_start_utc(self, value: datetime):
+    def datetime_reg_start_utc(self, value: datetime | None) -> None:
         pass
 
     @property
@@ -175,7 +208,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @datetime_reg_start_local.setter
     @abstractmethod
-    def datetime_reg_start_local(self, value: datetime):
+    def datetime_reg_start_local(self, value: datetime | None) -> None:
         pass
 
     @property
@@ -185,7 +218,7 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
 
     @datetime_reg_stop_utc.setter
     @abstractmethod
-    def datetime_reg_stop_utc(self, value: datetime):
+    def datetime_reg_stop_utc(self, value: datetime | None) -> None:
         pass
 
     # @property
@@ -208,15 +241,15 @@ class RatanObservationMetadata(ObservationMetadata, ABC):
     # def datetime_culmination_local(self, value: datetime):
     #     pass
 
-    @property
-    @abstractmethod
-    def cdelt1(self) -> float:
-        pass
-
-    @cdelt1.setter
-    @abstractmethod
-    def cdelt1(self, value: float):
-        pass
+    # @property
+    # @abstractmethod
+    # def cdelt1(self) -> float:
+    #     pass
+    #
+    # @cdelt1.setter
+    # @abstractmethod
+    # def cdelt1(self, value: float):
+    #     pass
 
     @property
     @abstractmethod

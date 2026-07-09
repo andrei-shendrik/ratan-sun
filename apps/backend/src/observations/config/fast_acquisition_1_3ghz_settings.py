@@ -11,6 +11,22 @@ CURRENT_DIR = Path(__file__).resolve().parent
 ENV_FILE = CURRENT_DIR.parent.parent.parent.parent.parent / '.env'
 TOML_FILE = CURRENT_DIR / 'fast_acquisition_1_3ghz.toml'
 
+class SpectrogramSettings(BaseModel):
+    num_frequencies: int
+    num_samples: int
+
+class ScanGroupSettings(BaseModel):
+    num_frequencies: int
+    num_samples: int
+
+class ThumbnailSettings(BaseModel):
+    width_px: int
+    height_px: int
+
+class VisualizationSettings(BaseModel):
+    spectrogram: SpectrogramSettings
+    scan: ScanGroupSettings
+    thumbnail: ThumbnailSettings
 
 class ResourceSettings(BaseModel):
     worker_max_ram_gb: float
@@ -26,7 +42,7 @@ class EnvConfig(BaseModel):
     log_level: str = Field(alias='BACKEND_LOG_LEVEL')
     bin_archive: Path = Field(alias='FAST_ACQ_1_3GHZ_BIN_ARCHIVE')
     fits_archive: Path = Field(alias='FAST_ACQ_1_3GHZ_FITS_ARCHIVE')
-    json_archive: Path = Field(alias='FAST_ACQ_1_3GHZ_JSON_DATA')
+    fits_web_data: Path = Field(alias='FAST_ACQ_1_3GHZ_FITS_WEB_DATA')
 
     worker_max_ram_gb: float = Field(alias='BIN2FITS_FAST_ACQ_1_3GHZ_WORKER_MAX_RAM_GB')
     min_free_ram_gb: float = Field(alias='BIN2FITS_FAST_ACQ_1_3GHZ_MIN_FREE_RAM_GB')
@@ -38,13 +54,14 @@ class FastAcquisition1To3GHzSettings(BaseModel):
     log_level: str
     bin_archive: Path
     fits_archive: Path
-    json_archive: Path
+    fits_web_data: Path
     worker_max_ram_gb: float
     min_free_ram_gb: float
     monitoring_days: int
 
     resources: ResourceSettings
     file_filters: FileFilterSettings
+    visualization: VisualizationSettings
 
     @classmethod
     @cache
@@ -67,12 +84,20 @@ class FastAcquisition1To3GHzSettings(BaseModel):
 
             filters = FileFilterSettings(**toml_data.get('file_filters', {}))
 
+            vis_data = toml_data['visualization']
+
+            vis_settings = VisualizationSettings(
+                spectrogram=SpectrogramSettings(**vis_data['spectrogram']),
+                scan=ScanGroupSettings(**vis_data['scan_group']),
+                thumbnail=ThumbnailSettings(**vis_data['thumbnail'])
+            )
+
             return cls(
                 log_dir=env.log_dir,
                 log_level=env.log_level,
                 bin_archive=env.bin_archive,
                 fits_archive=env.fits_archive,
-                json_archive=env.json_archive,
+                fits_web_data=env.fits_web_data,
                 worker_max_ram_gb=env.worker_max_ram_gb,
                 min_free_ram_gb=env.min_free_ram_gb,
                 monitoring_days=env.monitoring_days,
@@ -80,7 +105,8 @@ class FastAcquisition1To3GHzSettings(BaseModel):
                     worker_max_ram_gb=env.worker_max_ram_gb,
                     min_free_ram_gb=env.min_free_ram_gb
                 ),
-                file_filters=filters
+                file_filters=filters,
+                visualization=vis_settings
             )
         except ValidationError as e:
             sys.stderr.write("\nCRITICAL SETTINGS ERROR: Missing or invalid configuration\n")

@@ -8,6 +8,8 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.calibrators.fast_acquisition_1_3ghz_c
     FastAcquisition1To3GHzCalibrator
 from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquisition_1_3ghz_channel_filter import \
     FastAcquisition1To3GHzChannelFilter
+from ratanpy.ratan.fast_acquisition_1_3ghz.interpolators.fast_acquisition_1_3ghz_interpolator import \
+    FastAcquisition1To3GHzInterpolator
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_observation import \
     FastAcquisition1To3GHzObservation
 from ratanpy.ratan.fast_acquisition_1_3ghz.interference_removers.fast_acquisition_1_3ghz_interference_remover import \
@@ -62,4 +64,9 @@ class FastAcquisition1To3GHzProcessor(RatanObservationProcessor):
         if self._observation.raw_data is not None:
             self._observation.raw_data = None
             gc.collect()
+        return self
+
+    def interpolate(self, interpolator: FastAcquisition1To3GHzInterpolator) -> FastAcquisition1To3GHzProcessor:
+        observation = interpolator.process(self._observation)
+        self._observation = observation
         return self

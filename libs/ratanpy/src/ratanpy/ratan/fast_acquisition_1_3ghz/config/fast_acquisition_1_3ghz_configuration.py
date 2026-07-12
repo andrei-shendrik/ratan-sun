@@ -47,7 +47,9 @@ class FastAcquisition1To3GHzConfiguration:
         self._calibr_missing_value_replacement = None
         self._calibr_kurtosis_value_replacement = None
 
+        # channel_filter
         self._filter_bands = None
+        self._max_gap_length = None
 
         self._flux_dm_file = None
 
@@ -103,8 +105,9 @@ class FastAcquisition1To3GHzConfiguration:
                 instance._calibr_missing_value_replacement = value_replacement['calibr_missing_value_replacement']
                 instance._calibr_kurtosis_value_replacement = value_replacement['calibr_kurtosis_value_replacement']
 
-                filtration = config_data['filtration']
-                instance._filter_bands = filtration['filter_bands']
+                channel_filter = config_data['channel_filter']
+                instance._filter_bands = channel_filter['filter_bands']
+                instance._max_gap_length = channel_filter['max_gap_length']
                 return instance
         except FileNotFoundError:
             raise RuntimeError(f"Configuration file not found: {config_file}")
@@ -208,3 +211,7 @@ class FastAcquisition1To3GHzConfiguration:
     @property
     def quantize_level(self) -> int:
         return self._quantize_level
+
+    @property
+    def max_gap_length(self) -> int:
+        return self._max_gap_length

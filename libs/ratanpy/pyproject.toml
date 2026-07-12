@@ -21,7 +21,9 @@ dependencies = [
     "sunpy",
     "colorama",
     "pydantic",
-    "psutil"
+    "psutil",
+    "scipy",
+    "numba"
 ]
 
 [tool.deptry]

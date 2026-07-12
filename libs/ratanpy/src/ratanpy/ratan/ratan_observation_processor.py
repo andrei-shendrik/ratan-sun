@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from ratanpy.ratan.data_receiver import DataReceiver
+from ratanpy.ratan.ratan_interpolator import RatanInterpolator
 from ratanpy.ratan.ratan_observation import RatanObservation
 from ratanpy.ratan.services.ratan_channel_filter import RatanChannelFilter
 from ratanpy.ratan.services.ratan_interference_remover import RatanInterferenceRemover
@@ -30,6 +31,10 @@ class RatanObservationProcessor(ABC):
 
     @abstractmethod
     def filter_channels(self, channel_filter: RatanChannelFilter):
+        pass
+
+    @abstractmethod
+    def interpolate(self, interpolator: RatanInterpolator):
         pass
 
     @abstractmethod

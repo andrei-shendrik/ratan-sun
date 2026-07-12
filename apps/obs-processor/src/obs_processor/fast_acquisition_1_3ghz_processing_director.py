@@ -4,12 +4,16 @@ from ratanpy.ratan.factories.ratan_processor_factory import RatanProcessorFactor
 from ratanpy.ratan.factories.ratan_reader_factory import RatanReaderFactory
 from ratanpy.ratan.fast_acquisition_1_3ghz.calibrators.fast_acquisition_1_3ghz_calibrator_lebedev import \
     FastAcquisition1To3GHzCalibratorLebedev
+from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquisition_1_3ghz_nan_gap_filter import \
+    FastAcquisition1To3GHzNaNGapFilter
 from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquition_1_3ghz_bands_filter import \
     FastAcquisition1To3GHzBandFilter
 from ratanpy.ratan.fast_acquisition_1_3ghz.config.config_instance import config
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_observation import FastAcquisition1To3GHzObservation
 from ratanpy.ratan.fast_acquisition_1_3ghz.interference_removers import \
     FastAcquisition1To3GHzKurtosisInterferenceRemover
+from ratanpy.ratan.fast_acquisition_1_3ghz.interpolators.fast_acquisition_1_3ghz_borrowed_noise_interpolator import \
+    FastAcquisition1To3GHzBorrowedNoiseInterpolator
 from ratanpy.ratan.fast_acquisition_1_3ghz.writers.fast_acquisition_1_3ghz_fits_writer import \
     FastAcquisition1To3GHzFitsWriter
 
@@ -29,7 +33,9 @@ class FastAcquisition1To3GHzProcessingDirector:
             .remove_interference(FastAcquisition1To3GHzKurtosisInterferenceRemover())
             .drop_raw_data()
             .filter_channels(FastAcquisition1To3GHzBandFilter(config.filter_bands))
+            .filter_channels(FastAcquisition1To3GHzNaNGapFilter(config, max_gap_length=200))
             .calibrate(FastAcquisition1To3GHzCalibratorLebedev())
+            .interpolate(FastAcquisition1To3GHzBorrowedNoiseInterpolator())
             .get_observation()
         )
 

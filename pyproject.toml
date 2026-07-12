@@ -9,5 +9,7 @@ members = [
 [tool.uv]
 dev-dependencies = [
     "deptry",
-    "watchfiles"
+    "watchfiles",
+    "scipy-stubs",
+    "celery-types"
 ]

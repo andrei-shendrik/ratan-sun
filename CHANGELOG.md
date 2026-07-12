@@ -1,7 +1,8 @@
 # Changelog
 
 ## [Unreleased]
-- None
+### Fixed
+- **Fast Acquisition 1-3 GHz:** values of feed_horn offset fields in DB for FITS
 
 ## [2.2.0] - 2026-07-10
 ## Added

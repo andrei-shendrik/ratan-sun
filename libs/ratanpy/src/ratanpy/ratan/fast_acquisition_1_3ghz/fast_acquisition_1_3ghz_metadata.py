@@ -155,9 +155,6 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._start_pulse_edge_time = None
         self._stop_pulse_edge_time = None
 
-        self._feed_offset = None
-        self._feed_offset_time = None
-
         self._attenuator_common = None
         self._attenuator_1_2ghz = None
         self._attenuator_2_3ghz = None
@@ -187,9 +184,6 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._freq_max_mhz = None
 
         self._additional_data_cleaning = None
-
-        self._feedhorn_offset = None
-        self._feedhorn_offset_time = None
 
     @property
     def obs_filename(self) -> str:
@@ -488,20 +482,20 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._auto_polarization_switch = value
 
     @property
-    def feedhorn_offset(self):
-        return self._feedhorn_offset
+    def feed_horn_offset(self):
+        return self._feed_horn_offset
 
-    @feedhorn_offset.setter
-    def feedhorn_offset(self, value):
-        self._feedhorn_offset = value
+    @feed_horn_offset.setter
+    def feed_horn_offset(self, value):
+        self._feed_horn_offset = value
 
     @property
-    def feedhorn_offset_time(self):
-        return self._feedhorn_offset_time
+    def feed_horn_offset_time(self):
+        return self._feed_horn_offset_time
 
-    @feedhorn_offset_time.setter
-    def feedhorn_offset_time(self, value):
-        self._feedhorn_offset_time = value
+    @feed_horn_offset_time.setter
+    def feed_horn_offset_time(self, value):
+        self._feed_horn_offset_time = value
 
     @property
     def is_bad(self):
@@ -606,22 +600,6 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
     @ref_time.setter
     def ref_time(self, value):
         self._ref_time = value
-
-    @property
-    def feed_offset(self):
-        return self._feed_offset
-
-    @feed_offset.setter
-    def feed_offset(self, value):
-        self._feed_offset = value
-
-    @property
-    def feed_offset_time(self):
-        return self._feed_offset_time
-
-    @feed_offset_time.setter
-    def feed_offset_time(self, value):
-        self._feed_offset_time = value
 
     @property
     def attenuator_common(self):

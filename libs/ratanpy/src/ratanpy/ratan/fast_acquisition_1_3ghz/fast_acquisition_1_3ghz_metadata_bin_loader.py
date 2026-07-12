@@ -224,15 +224,15 @@ class FastAcquisition1To3GHzMetadataBinLoader(RatanMetadataLoader):
         # Прочитать pulse1_rlc и pulse2_rlc. Найти сэмплы с началом последнего импульса и концом препоследнего.
         # Проверить, похоже ли время на правду
         # Можно ли верить Трушкину по поводу feed_offset_time?
-        metadata.feed_offset = float(desc_data.get_value("feed_offset"))
-        metadata.feed_offset_time = timedelta(seconds=float(desc_data.get_value("feed_offset_time")))
+        metadata.feed_horn_offset = float(desc_data.get_value("feed_offset"))
+        metadata.feed_horn_offset_time = timedelta(seconds=float(desc_data.get_value("feed_offset_time")))
         metadata.start_pulse_edge_time = int(desc_data.get_value("pulse1_rlc")[1])
         metadata.stop_pulse_edge_time = int(desc_data.get_value("pulse2_rlc")[0])
 
         FastAcquisition1To3GHzMetadataBinLoader.find_pulse_edge_samples(metadata, fast_acq_raw_data)
 
-        metadata.datetime_culmination_feed_horn_utc = metadata.datetime_culmination_efrat_utc + metadata.feed_offset_time
-        metadata.datetime_culmination_feed_horn_local = metadata.datetime_culmination_efrat_local + metadata.feed_offset_time
+        metadata.datetime_culmination_feed_horn_utc = metadata.datetime_culmination_efrat_utc + metadata.feed_horn_offset_time
+        metadata.datetime_culmination_feed_horn_local = metadata.datetime_culmination_efrat_local + metadata.feed_horn_offset_time
 
         time_between_pulse_edges = metadata.stop_pulse_edge_time - metadata.start_pulse_edge_time
         samples_between_pulse_edges = metadata.stop_pulse_edge_sample - metadata.start_pulse_edge_sample

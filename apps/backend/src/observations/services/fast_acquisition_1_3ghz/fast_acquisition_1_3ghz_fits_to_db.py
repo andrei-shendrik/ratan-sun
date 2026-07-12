@@ -91,8 +91,8 @@ class FastAcquisition1To3GHzFitsToDB:
                         'arcsec_resolution': metadata.arcsec_resolution,
                         'switch_polarization_time': metadata.switch_polarization_time,
 
-                        'feed_horn_offset': metadata.feedhorn_offset,
-                        'feed_horn_offset_time': metadata.feedhorn_offset_time,
+                        'feed_horn_offset': metadata.feed_horn_offset,
+                        'feed_horn_offset_time': metadata.feed_horn_offset_time.total_seconds(),
 
                         'attenuator_common': metadata.attenuator_common,
                         'attenuator_1_2ghz': metadata.attenuator_1_2ghz,

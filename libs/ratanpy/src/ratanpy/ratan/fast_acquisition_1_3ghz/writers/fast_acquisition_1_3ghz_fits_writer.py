@@ -175,8 +175,8 @@ class FastAcquisition1To3GHzFitsWriter(RatanObservationWriter):
 
         header['SCAN_ANG'] = (metadata.scan_angle.value, f"Unit: {metadata.scan_angle.unit}")
 
-        header['FEED_OFF'] = (metadata.feed_offset, "Feed Horn Offset, cm")
-        header['FE_OFF_T'] = (metadata.feed_offset_time.total_seconds(), "Feed Horn Offset by Time, s")
+        header['FEED_OFF'] = (metadata.feed_horn_offset, "Feed Horn Offset, cm")
+        header['FE_OFF_T'] = (metadata.feed_horn_offset_time.total_seconds(), "Feed Horn Offset by Time, s")
 
         if metadata.is_calibrated is not None:
             header['CALIBR'] = (metadata.is_calibrated, "Is calibrated")

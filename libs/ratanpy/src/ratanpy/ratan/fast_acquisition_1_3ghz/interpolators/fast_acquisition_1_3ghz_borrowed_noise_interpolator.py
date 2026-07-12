@@ -195,13 +195,13 @@ class FastAcquisition1To3GHzBorrowedNoiseInterpolator(FastAcquisition1To3GHzInte
     """
 
     def __init__(self, smoothing_sigma: float = 50.0, edge_trim_points: int = 3):
-        self.smoothing_sigma = smoothing_sigma
-        self.edge_trim_points = edge_trim_points
+        self._smoothing_sigma = smoothing_sigma
+        self._edge_trim_points = edge_trim_points
 
     def process(self, observation: FastAcquisition1To3GHzObservation) -> FastAcquisition1To3GHzObservation:
 
-        observation.data.pol_channel1 = self._interpolate_channel_matrix(observation.data.pol_channel0)
-        observation.data.pol_channel0 = self._interpolate_channel_matrix(observation.data.pol_channel1)
+        observation.data.pol_channel0 = self._interpolate_channel_matrix(observation.data.pol_channel0)
+        observation.data.pol_channel1 = self._interpolate_channel_matrix(observation.data.pol_channel1)
 
         return observation
 
@@ -214,8 +214,8 @@ class FastAcquisition1To3GHzBorrowedNoiseInterpolator(FastAcquisition1To3GHzInte
 
         # отсечение краев
         valid_mask = ~np.isnan(result_matrix)
-        if self.edge_trim_points > 0:
-            window_size = 2 * self.edge_trim_points + 1
+        if self._edge_trim_points > 0:
+            window_size = 2 * self._edge_trim_points + 1
             valid_mask = minimum_filter1d(valid_mask.view(np.int8), size=window_size, axis=1).astype(bool)
             result_matrix[~valid_mask] = np.nan
 
@@ -263,7 +263,7 @@ class FastAcquisition1To3GHzBorrowedNoiseInterpolator(FastAcquisition1To3GHzInte
             dense_data[i] = interpolator(x_indices)
 
         # --- этап 3: сглаживание сплайна гауссианой ---
-        trend_matrix = gaussian_filter1d(dense_data, sigma=self.smoothing_sigma, axis=1)
+        trend_matrix = gaussian_filter1d(dense_data, sigma=self._smoothing_sigma, axis=1)
 
         """
         альтернативный способ сглаживания:

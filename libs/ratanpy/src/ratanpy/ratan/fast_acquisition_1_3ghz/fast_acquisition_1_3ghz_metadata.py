@@ -3,6 +3,7 @@ from pathlib import Path
 
 from astropy.coordinates import Angle
 
+from ratanpy.ratan.coordinate_axes import CoordinateAxes
 from ratanpy.ratan.data_values import DataValues
 from ratanpy.ratan.observation_mode import ObservationMode
 from ratanpy.ratan.polarization_type import PolarizationType
@@ -134,7 +135,7 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._scan_angle: Angle | None = None # solar_q
         self._solar_b: Angle | None = None
 
-        self._coordinate_axes = None
+        self._coordinate_axes: CoordinateAxes | None = None
         self._num_samples = None  # количество временных отсчетов
         self._num_frequencies = None  # spectrum_length
         self._ref_time = None
@@ -666,11 +667,13 @@ class FastAcquisition1To3GHzMetadata(RatanObservationMetadata):
         self._unit = value
 
     @property
-    def coordinate_axes(self):
+    def coordinate_axes(self) -> CoordinateAxes:
+        if self._coordinate_axes is None:
+            raise ValueError(f"Value is not set")
         return self._coordinate_axes
 
     @coordinate_axes.setter
-    def coordinate_axes(self, value):
+    def coordinate_axes(self, value: CoordinateAxes):
         self._coordinate_axes = value
 
     @property

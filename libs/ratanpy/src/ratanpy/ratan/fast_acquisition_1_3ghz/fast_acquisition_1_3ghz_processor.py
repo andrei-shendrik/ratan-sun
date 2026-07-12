@@ -8,6 +8,8 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.calibrators.fast_acquisition_1_3ghz_c
     FastAcquisition1To3GHzCalibrator
 from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquisition_1_3ghz_channel_filter import \
     FastAcquisition1To3GHzChannelFilter
+from ratanpy.ratan.fast_acquisition_1_3ghz.downsamplers.fast_acquisition_1_3ghz_downsampler import \
+    FastAcquisition1To3GHzDownsampler
 from ratanpy.ratan.fast_acquisition_1_3ghz.interpolators.fast_acquisition_1_3ghz_interpolator import \
     FastAcquisition1To3GHzInterpolator
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_observation import \
@@ -68,5 +70,10 @@ class FastAcquisition1To3GHzProcessor(RatanObservationProcessor):
 
     def interpolate(self, interpolator: FastAcquisition1To3GHzInterpolator) -> FastAcquisition1To3GHzProcessor:
         observation = interpolator.process(self._observation)
+        self._observation = observation
+        return self
+
+    def downsample(self, downsampler: FastAcquisition1To3GHzDownsampler) -> FastAcquisition1To3GHzProcessor:
+        observation = downsampler.process(self._observation)
         self._observation = observation
         return self

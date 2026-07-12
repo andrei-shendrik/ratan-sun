@@ -9,6 +9,10 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquisition_1_3g
 from ratanpy.ratan.fast_acquisition_1_3ghz.channel_filters.fast_acquition_1_3ghz_bands_filter import \
     FastAcquisition1To3GHzBandFilter
 from ratanpy.ratan.fast_acquisition_1_3ghz.config.config_instance import config
+from ratanpy.ratan.fast_acquisition_1_3ghz.downsamplers.fast_acquisition_1_3ghz_frequency_axis_downsampler import \
+    FastAcquisition1To3GHzFrequencyAxisDownsampler
+from ratanpy.ratan.fast_acquisition_1_3ghz.downsamplers.fast_acquisition_1_3ghz_time_axis_downsampler import \
+    FastAcquisition1To3GHzTimeAxisDownsampler
 from ratanpy.ratan.fast_acquisition_1_3ghz.fast_acquisition_1_3ghz_observation import FastAcquisition1To3GHzObservation
 from ratanpy.ratan.fast_acquisition_1_3ghz.interference_removers import \
     FastAcquisition1To3GHzKurtosisInterferenceRemover
@@ -16,12 +20,14 @@ from ratanpy.ratan.fast_acquisition_1_3ghz.interpolators.fast_acquisition_1_3ghz
     FastAcquisition1To3GHzBorrowedNoiseInterpolator
 from ratanpy.ratan.fast_acquisition_1_3ghz.writers.fast_acquisition_1_3ghz_fits_writer import \
     FastAcquisition1To3GHzFitsWriter
+from ratanpy.utils.common_utils import time_counter
 
 FITS_OUTPUT_PATH = Path(r"D:\data\astro\ratan-600\fast-acquisition-1-3ghz\fits\sun")
 
 class FastAcquisition1To3GHzProcessingDirector:
 
     @staticmethod
+    @time_counter
     def run_standard_processing(bin_file: Path) -> FastAcquisition1To3GHzObservation:
 
         processor = RatanProcessorFactory.create_processor(bin_file)
@@ -36,8 +42,13 @@ class FastAcquisition1To3GHzProcessingDirector:
             .filter_channels(FastAcquisition1To3GHzNaNGapFilter(config, max_gap_length=200))
             .calibrate(FastAcquisition1To3GHzCalibratorLebedev())
             .interpolate(FastAcquisition1To3GHzBorrowedNoiseInterpolator())
+            .downsample(FastAcquisition1To3GHzTimeAxisDownsampler(800))
+            .downsample(FastAcquisition1To3GHzFrequencyAxisDownsampler(50))
             .get_observation()
         )
+
+        print(f"fr {observation.metadata.num_frequencies}")
+        print(f"sa {observation.metadata.num_samples}")
 
         # todo: add methods:
         # .convert_to_iv()

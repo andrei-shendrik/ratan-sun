@@ -36,7 +36,7 @@ def draw_charts():
 
     frequencies = np.linspace(1000, 3000, data.shape[0])
 
-    num_lines = 250
+    num_lines = 50
     target_indices = np.linspace(0, data.shape[0] - 1, num_lines, dtype=int)
 
     matplotlib.use('TkAgg')
